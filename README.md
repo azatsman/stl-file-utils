@@ -1,6 +1,6 @@
 # Utilities for STL files
 
-This is a small set of simple tools to manipulate and get info about STL files used in 3D pringing.
+This is a small set of simple tools to manipulate and get info about [STL files](https://en.wikipedia.org/wiki/STL_(file_format)) used in 3D pringing.
 All tools use command-line interface and at this point have only been tested on a Linux system.
 
 ## Description
