@@ -19,6 +19,7 @@
 #include <string>
 
 // typedef StlInBinFile<double> STLF;
+
 typedef Vec3<float>     V3;
 
 static bool lessV3(V3 u, V3 v)
@@ -113,6 +114,22 @@ static  std::string type2string (T x)
   return oss.str();
 }
 
+static void usage (char * progName) {
+  std::cout << "Usage : "
+            << progName
+            << " <input-name> [<epsilon> [<max-range> [<verbosity>]]]"
+            << std::endl;
+
+  std::cout << "       where: " << std::endl;
+
+  std::cout << "  <input-name> is the name of an STL file " << std::endl;
+  std::cout << "  <epsilon>    is smallest distance between vertices before vertices are considered identical " << std::endl;
+  std::cout << "  <max-range>  is the largest allowed value of vertex coordinate " << std::endl;
+  std::cout << "  <verbosity>  is verbosity level of the output " << std::endl;
+
+  
+}
+
 int main (int argc, char *argv[])
 {
   int trNum = 0;
@@ -121,6 +138,11 @@ int main (int argc, char *argv[])
   V3 curTrig[3];
   V3 curNormal;
   try {
+    if (argc < 2) {
+      usage (argv[0]);
+      return 3;
+    }
+    
     StlInBinFile stlf (argv[1]);
     if (argc > 2)
       sscanf (argv[2], "%lf", &Epsilon);
