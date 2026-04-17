@@ -24,6 +24,7 @@ struct Triangle {
 class StlInBaseFile {
 public:
   virtual ~StlInBaseFile () {};
+  // Try reading one triangle, return 'true' if successful:
   virtual bool readTriangle (V3 trig[3], V3& normal) = 0;
   virtual bool readTriangle (Triangle& trngl) = 0;
 protected:

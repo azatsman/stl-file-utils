@@ -20,7 +20,11 @@
 
 // typedef StlInBinFile<double> STLF;
 
+
 typedef Vec3<float>     V3;
+
+static double Epsilon  = 1e-3;
+static double MaxRange = 1e9;
 
 static bool lessV3(V3 u, V3 v)
 {
@@ -101,8 +105,6 @@ struct TrigSet {
 std::map<OrdEdge, TrigSet, lessEdge>  edgeMap;
 std::map<V3,      int,     CompV3>    vertexMap;
 
-static double Epsilon = 1e-3;
-static double MaxRange = 1e22;
 
 typedef Vec3<float>     V3;
 
@@ -126,8 +128,6 @@ static void usage (char * progName) {
   std::cout << "  <epsilon>    is smallest distance between vertices before vertices are considered identical " << std::endl;
   std::cout << "  <max-range>  is the largest allowed value of vertex coordinate " << std::endl;
   std::cout << "  <verbosity>  is verbosity level of the output " << std::endl;
-
-  
 }
 
 int main (int argc, char *argv[])
@@ -143,16 +143,21 @@ int main (int argc, char *argv[])
       return 3;
     }
     
-    StlInBinFile stlf (argv[1]);
+    StlInFile stlf (argv[1]);
     if (argc > 2)
       sscanf (argv[2], "%lf", &Epsilon);
     if (argc > 3)
       sscanf (argv[3], "%lf", &MaxRange);
     if (argc > 4)
       sscanf (argv[4], "%d", &verbosity);
-    int numDclTrngl = stlf.numTriangles();
-    for (trNum=0; trNum<numDclTrngl; trNum++) {
-      stlf.readTriangle(curTrig, curNormal);
+
+    // int numDclTrngl = stlf.numTriangles();
+
+
+    for (trNum=0; ; trNum++) {
+      if (! stlf.readTriangle(curTrig, curNormal))
+        break;
+
       OrdEdge
 	edgeKey01(curTrig[0], curTrig[1]),
 	edgeKey12(curTrig[1], curTrig[2]),

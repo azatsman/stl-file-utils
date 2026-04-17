@@ -66,9 +66,9 @@ bool StlInBinFile::readTriangle(V3 trig[3], V3& normal)
     return false;
 
   if (fread(buf, 4, 12, fl_) != 12)
-    throw(std::string("Failed to read a triangle"));
+    return false;
   if (fread(&n16, 2, 1, fl_) != 1)
-    throw(std::string("Failed to read an \"Attribute Byte Count\""));
+    throw(std::string("Failed to read the \"Attribute Byte Count\" field"));
   float* bp = buf;
   for   (int j=0; j<3; j++)
     normal.p[j] = *bp++;
