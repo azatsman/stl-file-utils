@@ -5,9 +5,9 @@
 //    XYZ ranges
 //     moments and gravity center.
 
-static double Epsilon = 1e-9;
+static double Epsilon  = 0.0001;
 static double MaxValue = 1e9;
-static int verbosity = 1;
+static int    verbosity = 1;
 
 #define DO_EDGES 1
 
@@ -101,14 +101,20 @@ static void checkTrig (V3 trig[3], V3 normal)
 
 void parseOptions (int argc, char* argv[])
 {
-  po::options_description desc("Oooptionssss");
+  po::options_description desc("Options");
+
   std::string angleLogFile;
+
+  std::ostringstream epsString;
+
+  epsString << Epsilon;
+  
   desc.add_options()
     ("help,h",      "print usage message")
     ("input,i",      po::value<std::string> (&inputFileName), "Input STL file")
     ("angle-log,a",  po::value<std::string> (&angleLogFile),  "Angle log file")
-    ("epsilon, e",   po::value(&Epsilon),           "Precision")
-    ("max-value, m", po::value(&MaxValue),           "Max. legal coordinate value");
+    ("epsilon,e",    po::value(&Epsilon)->default_value (Epsilon), "Precision")
+    ("max-value,m",  po::value(&MaxValue)->default_value (MaxValue), "Max. legal coordinate value");
   po::basic_parsed_options<char>  parsedCmdOpts = po::parse_command_line (argc, argv, desc);
   po::variables_map varMap;
   po::store(parsedCmdOpts, varMap);
@@ -196,9 +202,29 @@ static void processTrig (V3 trig[3]) {
   }
 }
 
-static float findMinPntDistance ()
+
+static bool pointLexComp (const V3& x, const V3& y) {
+  if (x.p[0] < y.p[0])
+    return true;
+  else if (x.p[0] > y.p[0])
+    return false;
+  else if (x.p[0] == y.p[0]) {
+    if (x.p[1] < y.p[1])
+      return true;
+    else if (x.p[1] > y.p[1])
+      return false;
+    else if (x.p[1] == y.p[1]) 
+      return (x.p[2] < y.p[2]);
+  }
+  return false;
+}
+
+static void dumpSmallDistances ()
 {
   float minD2 = 1e22;
+
+  float eps2 = Epsilon * Epsilon;
+
   for (PointSet::const_iterator p1=pntSet.begin(); p1 != pntSet.end(); p1++) {
     V3 v1 = *p1;
     PointSet::const_iterator p1next = p1;
@@ -207,13 +233,16 @@ static float findMinPntDistance ()
       V3 v2 = *p2;
       V3  dv = v1-v2;
       float d2 = dv.p[0]*dv.p[0] +dv.p[1]*dv.p[1] +dv.p[2]*dv.p[2];
-      if (d2 < minD2)
+      if (d2 < minD2) {
         minD2 = d2;
+        // std::cout << "Smaller dist " << *p1 << "  " << *p2 << "  dist2 " << d2 << std::endl;
+      }
+      if (d2 < eps2) {
+        std::cout << "Small  dist " << *p1 << "  " << *p2 << "  dist " << sqrt(d2) << std::endl;
+      }
     }
   }
-  return sqrt (minD2);;
 }
-
 
 int main (int argc, char *argv[])
 {
@@ -291,7 +320,8 @@ int main (int argc, char *argv[])
   printf (" Min edge length: %f Max edge length: %f\n",
 	  sqrt(lsqMin), sqrt(lsqMax));
 
-  printf (" Min point distance: %f\n", findMinPntDistance());
+  dumpSmallDistances();
+
   volume /= 6;
 
   printf (" Volume : %lf\n", volume);

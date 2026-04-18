@@ -1,6 +1,8 @@
 #ifndef ________________________________________included_vec3_hpp_9899015
 #define ________________________________________included_vec3_hpp_9899015
 
+#include <iostream>
+
 /* 3D Linear Algebra */
 
 #include <string.h>
@@ -9,8 +11,7 @@
 
 #include <cmath>
 
-template <typename Real>
-class Vec3 {
+template <typename Real> class Vec3 {
  public:
   Real p[3];
   
@@ -36,6 +37,9 @@ class Vec3 {
 
   Real & operator () (int i) {return p[i];};
   Real & operator [] (int i) {return p[i];};
+
+
+
 
   // Matrix addition:
 
@@ -132,6 +136,14 @@ class Vec3 {
 
   static int numRows () {return 3;}
 };
+
+//inline static
+template <typename Real>
+std::ostream&  operator<< (std::ostream& out, Vec3<Real> v)
+{
+  out << "(" << v.p[0] << ", " << v.p[1] << ", " << v.p[2] << ")";
+  return out;
+}
 
 template <typename Real>
 class Mat3 {

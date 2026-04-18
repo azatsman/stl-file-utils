@@ -23,15 +23,15 @@
 
 typedef Vec3<float>     V3;
 
-static double Epsilon  = 1e-3;
+static double Epsilon  = 1e-6;
 static double MaxRange = 1e9;
 
 static bool lessV3(V3 u, V3 v)
 {
   for (int k=0; k<3; k++) {
-    if      (u.p[k] < v.p[k])
+    if      (u.p[k] + Epsilon < v.p[k])
       return true;
-    else if (u.p[k] > v.p[k])
+    else if (u.p[k] - Epsilon > v.p[k])
       return false;
   }
   return false;
@@ -39,16 +39,10 @@ static bool lessV3(V3 u, V3 v)
 
 struct CompV3 {
   bool operator() (V3 u, V3 v) const {
-    for (int k=0; k<3; k++) {
-      if      (u.p[k] < v.p[k])
-	return true;
-      else if (u.p[k] > v.p[k])
-	return false;
-    }
-    return false;
-  };
+    return lessV3 (u, v);
+  }
 };
-
+  
 //.................................. Ordered edge:
 struct OrdEdge {
   V3 pnt0;
@@ -212,10 +206,10 @@ int main (int argc, char *argv[])
     numVertices = vertexMap.size(),
     numEdges    = edgeMap.size(),
     euler       = numVertices - numEdges + trNum;
-  std::cout << numVertices << " vertices " 
-	    << numEdges   << " edges "
-	    << trNum            << " faces " 
-	    << euler  << " euler number " 
+  std::cout << numVertices << " vertices " << std::endl
+	    << numEdges    << " edges " << std::endl
+	    << trNum       << " faces "  << std::endl
+	    << euler       << " euler number ( = num.Vertices - num.Edges + num.Triangles)" 
 	    << std::endl;
   return 0;
 }
