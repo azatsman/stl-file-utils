@@ -38,11 +38,6 @@ template <typename Real> class Vec3 {
   Real & operator () (int i) {return p[i];};
   Real & operator [] (int i) {return p[i];};
 
-
-
-
-  // Matrix addition:
-
   Vec3 operator + (Vec3 x) const {
     Vec3 r (p[0]+x.p[0], p[1]+x.p[1], p[2]+x.p[2]);
     return r;

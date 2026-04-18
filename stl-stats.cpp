@@ -29,25 +29,6 @@ namespace po = boost::program_options;
 typedef Vec3<float>     V3;
 typedef Mat3<float>     M3;
 
-struct AngleLogger {
-  FILE* fd;
-  AngleLogger() : fd(NULL) {};
-  ~AngleLogger()  {
-    if (fd != NULL)
-      fclose (fd);
-  };
-  void open (std::string fileName) {fd = fopen (fileName.c_str(), "wt");}
-  void operator() (V3 nv) {  // 'nv' is supposed to be a normalized (length=1) 3d vector);
-    if (fd != NULL) {
-      double
-	angRad = asin (nv.p[2]),
-	angDeg = (180/M_PI) *  angRad;
-      fprintf (fd, "%7.3lf\n", angDeg);
-    }
-  }
-};
-
-static AngleLogger angleLogger;
 
 template <typename T>
 static  std::string type2string (T x)
@@ -81,29 +62,11 @@ static void checkTrig (V3 trig[3], V3 normal)
       throw(std::string("Normal's coordinate too large :  = ") +
 	    type2string(normal.p[j]));
   }
-  //................................................ Check orthonormality:
-  if (false) {
-    if (fabs(normal * (trig[1] - trig[0])) > Epsilon)
-      throw(std::string("Normal is not orthogonal to its triangle"));
-    if (fabs(normal * (trig[2] - trig[0])) > Epsilon)
-      throw(std::string("Normal is not orthogonal to its triangle"));
-    float normNorm2 = normal.sumSquares();
-    if (fabs (1.0 - normNorm2) > Epsilon) {
-      throw(std::string("Normal's length is not 1. Squares length = ") +
-            type2string(normNorm2));
-    }
-  }
-  //................................................ Check orientation:
-
-  if (false && M3(trig[1]-trig[0], trig[2]-trig[0], normal).det() <= 0)
-    throw(std::string("Bad facet orientation"));
 }
 
 void parseOptions (int argc, char* argv[])
 {
   po::options_description desc("Options");
-
-  std::string angleLogFile;
 
   std::ostringstream epsString;
 
@@ -112,7 +75,6 @@ void parseOptions (int argc, char* argv[])
   desc.add_options()
     ("help,h",      "print usage message")
     ("input,i",      po::value<std::string> (&inputFileName), "Input STL file")
-    ("angle-log,a",  po::value<std::string> (&angleLogFile),  "Angle log file")
     ("epsilon,e",    po::value(&Epsilon)->default_value (Epsilon), "Precision")
     ("max-value,m",  po::value(&MaxValue)->default_value (MaxValue), "Max. legal coordinate value");
   po::basic_parsed_options<char>  parsedCmdOpts = po::parse_command_line (argc, argv, desc);
@@ -125,18 +87,10 @@ void parseOptions (int argc, char* argv[])
     exit (0);
   }
   
-  po::variables_map::iterator p  = varMap.find ("angle-log");
-  if (p != varMap.end()) {
-    angleLogger.open (angleLogFile);
-    if (verbosity >= 1)
-      printf ("Logging angles to \"%s\"\n", angleLogFile.c_str());
-  }
+
+
   if  (true) {
-    if (angleLogFile.empty())
-      printf ("No angle log is specified\n");
-    else
-      printf ("Angle log : \"%s\"\n", angleLogFile.c_str());
-    printf ("Epsilon = %e\n", Epsilon);
+    printf ("Epsilon  = %e\n", Epsilon);
     printf ("MaxValue = %e\n", MaxValue);
   }
 
@@ -202,28 +156,13 @@ static void processTrig (V3 trig[3]) {
   }
 }
 
-
-static bool pointLexComp (const V3& x, const V3& y) {
-  if (x.p[0] < y.p[0])
-    return true;
-  else if (x.p[0] > y.p[0])
-    return false;
-  else if (x.p[0] == y.p[0]) {
-    if (x.p[1] < y.p[1])
-      return true;
-    else if (x.p[1] > y.p[1])
-      return false;
-    else if (x.p[1] == y.p[1]) 
-      return (x.p[2] < y.p[2]);
-  }
-  return false;
-}
-
-static void dumpSmallDistances ()
+static std::tuple<float, V3, V3> getMinDistance ()
 {
   float minD2 = 1e22;
 
   float eps2 = Epsilon * Epsilon;
+
+  V3 p1min, p2min;
 
   for (PointSet::const_iterator p1=pntSet.begin(); p1 != pntSet.end(); p1++) {
     V3 v1 = *p1;
@@ -235,13 +174,16 @@ static void dumpSmallDistances ()
       float d2 = dv.p[0]*dv.p[0] +dv.p[1]*dv.p[1] +dv.p[2]*dv.p[2];
       if (d2 < minD2) {
         minD2 = d2;
+        p1min = *p1;
+        p2min = *p2;
         // std::cout << "Smaller dist " << *p1 << "  " << *p2 << "  dist2 " << d2 << std::endl;
       }
-      if (d2 < eps2) {
+      if (false && (d2 < eps2)) {
         std::cout << "Small  dist " << *p1 << "  " << *p2 << "  dist " << sqrt(d2) << std::endl;
       }
     }
   }
+  return (std::tuple (sqrt (minD2), p1min, p2min));
 }
 
 int main (int argc, char *argv[])
@@ -316,11 +258,14 @@ int main (int argc, char *argv[])
   printf (" X range:  %12.6f - %12.6f = %12.6f\n", xMax, xMin, xMax - xMin);
   printf (" Y range:  %12.6f - %12.6f = %12.6f\n", yMax, yMin, yMax - yMin);
   printf (" Z range:  %12.6f - %12.6f = %12.6f\n", zMax, zMin, zMax - zMin);
-  
-  printf (" Min edge length: %f Max edge length: %f\n",
-	  sqrt(lsqMin), sqrt(lsqMax));
+  printf (" Min edge length: %f\n", sqrt(lsqMin));
+  printf (" Max edge length: %f\n", sqrt(lsqMax));
 
-  dumpSmallDistances();
+  auto [minDist, p1min, p2min] = getMinDistance ();
+  printf (" Minimal distance of %e is between points:\n", minDist);
+  printf ("    (%.20f %.20f %.20f)  and\n", p1min[0], p1min[1], p1min[2]);
+  printf ("    (%.20f %.20f %.20f)\n", p2min[0], p2min[1], p2min[2]);
+  
 
   volume /= 6;
 

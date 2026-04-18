@@ -1,8 +1,8 @@
-CXX = g++
+CXX      = g++
 DBGFLAGS = -O3 -Wall
 DBGFLAGS = -g -Wall
 CXXFLAGS = $(DBGFLAGS)
-LDFLAGS = -lm  -lboost_program_options
+LDFLAGS  = -lm  -lboost_program_options
 
 
 stl-bin-to-text.o:  stl-bin-to-text.cpp stlfile.hpp
