@@ -29,6 +29,9 @@ void StlInBinFile::init (FILE * f)
   fl_ = f;
   if (fread (header_, sizeof(header_), 1, fl_) != 1) 
     throw (std::string("Failed to read the file header "));
+
+  header = header_;
+
   if (fread (&numTriangles_, sizeof(numTriangles_), 1, fl_) != 1) 
     throw (std::string("Failed to read the number of tirangles"));
   trigNum_ = 0;
@@ -162,15 +165,16 @@ StlInTextFile::StlInTextFile (const char* fileName) : fl_           (fileName),
                                                       lineNumber_   (0)
 {
   trigNum_ = 0;
-  std::string line, tok1;
+  std::string line, tok1, tok2;
   if (! readLine_ (line))
-    throw (ParseError (line, "Failed to read the first line of a facet", lineNumber_));
+    throw (ParseError (line, "Failed to read the first line of text STL file", lineNumber_));
   std::istringstream lineStream (line);
   lineStream >> tok1;
   std::transform (tok1.begin(), tok1.end(), tok1.begin(), [](unsigned char c){
     return std::tolower(c); });
   if (tok1 != std::string ("solid"))
     throw (ParseError (line, "Bad first line ", lineNumber_));
+  lineStream >> header;
 };
 
 StlInTextFile::~StlInTextFile ()

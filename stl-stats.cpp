@@ -35,10 +35,7 @@ static  std::string type2string (T x)
 
 template <typename T> struct StatAcc {
 
-  StatAcc() {
-    sum  = 0;
-    count = 0;
-  };
+  StatAcc() : count(0), sum(0) {};
 
   std::vector<T> valArr;
   int count;
@@ -48,7 +45,6 @@ template <typename T> struct StatAcc {
   T minVal;
   T maxVal;
 
-
   void putVal (T v) {
     if (count <= 0)
       minVal = maxVal = v;
@@ -56,8 +52,8 @@ template <typename T> struct StatAcc {
       minVal = std::min (v, minVal);
       maxVal = std::max (v, maxVal);
     }
-    sum += v;
-    count++;
+    sum   += v;
+    count += 1;
     valArr.push_back (v);
   }
 
@@ -208,9 +204,8 @@ int main (int argc, char *argv[])
     StlInFile stlf (inputFileName.c_str());
     std::cout << "STL file type : " << (stlf.isText ? "text" : "binary") << std::endl;
 
-    // StatAcc<float> lenStat;
+    std::cout << "STL header or name : " << stlf.getHeader() << std::endl;
 
-    
     stlf.readTriangle(curTrig, curNormal);
 
     areaStat.putVal (triangleArea (curTrig));

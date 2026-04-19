@@ -24,7 +24,11 @@ struct Triangle {
 class StlInBaseFile {
 public:
   virtual ~StlInBaseFile () {};
+
+  std::string header;  // Wikipedia calls it "name" for text files and "header" for binaries.
+
   // Try reading one triangle, return 'true' if successful:
+  
   virtual bool readTriangle (V3 trig[3], V3& normal) = 0;
   virtual bool readTriangle (Triangle& trngl) = 0;
 protected:
@@ -107,6 +111,8 @@ struct StlOutTextFile {
   void writeTriangle(const V3 trig[3], const V3& normal) ;
 };
 
+//------------------------------------------------------------------ "Generic" STL file
+
 class StlInFile : virtual StlInBaseFile {
 
 public:
@@ -117,6 +123,9 @@ public:
 
   virtual bool readTriangle (V3 trig[3], V3& normal);
   virtual bool readTriangle (Triangle& trngl);
+
+  std::string getHeader () {return actualStlFile->header;}
+  
 
 private:
   StlInBaseFile * actualStlFile;
