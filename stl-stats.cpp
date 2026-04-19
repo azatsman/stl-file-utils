@@ -5,8 +5,6 @@
 //    XYZ ranges
 //     moments and gravity center.
 
-static double Epsilon  = 0.0001;
-static double MaxValue = 1e9;
 static int    verbosity = 1;
 
 #define DO_EDGES 1
@@ -21,6 +19,7 @@ static int    verbosity = 1;
 #include <set>
 
 static std::string inputFileName;
+static bool findMinDist = false;
 
 namespace po = boost::program_options;
 
@@ -38,6 +37,44 @@ static  std::string type2string (T x)
   return oss.str();
 }
 
+template <typename T> struct StatAcc {
+
+  StatAcc() {
+    sum  = 0;
+    count = 0;
+  };
+
+  std::vector<T> valArr;
+  int count;
+  T sum;
+  T mean;
+  T median;
+  T minVal;
+  T maxVal;
+
+
+  void putVal (T v) {
+    if (count <= 0)
+      minVal = maxVal = v;
+    else {
+      minVal = std::min (v, minVal);
+      maxVal = std::max (v, maxVal);
+    }
+    sum += v;
+    count++;
+    valArr.push_back (v);
+  }
+
+  void finish () {
+    mean = sum / count;
+    std::sort (valArr.begin(), valArr.end());
+    if (count % 2 == 0)      // Even size array
+      median = 0.5 * (valArr[count/2] + valArr[count/2+1]);
+    else                     // Odd  size array
+      median = valArr[count/2];
+  }
+};
+
 static void checkTrig (V3 trig[3], V3 normal)
 {
   //............................................ Check the vertices: 
@@ -47,10 +84,6 @@ static void checkTrig (V3 trig[3], V3 normal)
 	throw(std::string("NaN in a triangle"));
       else if (std::isinf(trig[v].p[j]))
 	throw(std::string("Infinity in a triangle"));
-      if (! (fabs(trig[v].p[j]) < MaxValue)) {
-	throw(std::string("Vertex coordinate too large :  = ") +
-	      type2string(trig[v].p[j]));
-      }
     }
   //............................................ Check the normal: 
   for (int j=0; j<3; j++) {
@@ -58,40 +91,30 @@ static void checkTrig (V3 trig[3], V3 normal)
       throw(std::string("NaN in a normal"));
     else if (std::isinf(normal.p[j]))
       throw(std::string("Infinity in a normal"));
-    if (! (fabs(normal.p[j]) < MaxValue)) 
-      throw(std::string("Normal's coordinate too large :  = ") +
-	    type2string(normal.p[j]));
   }
 }
+
 
 void parseOptions (int argc, char* argv[])
 {
   po::options_description desc("Options");
 
-  std::ostringstream epsString;
-
-  epsString << Epsilon;
-  
   desc.add_options()
     ("help,h",      "print usage message")
     ("input,i",      po::value<std::string> (&inputFileName), "Input STL file")
-    ("epsilon,e",    po::value(&Epsilon)->default_value (Epsilon), "Precision")
-    ("max-value,m",  po::value(&MaxValue)->default_value (MaxValue), "Max. legal coordinate value");
+    ("min-distance,d",      po::bool_switch (&findMinDist),
+     "Report minimal distance between vertices"
+     "   (quadratic complexity)"
+     );
+  
   po::basic_parsed_options<char>  parsedCmdOpts = po::parse_command_line (argc, argv, desc);
   po::variables_map varMap;
-  po::store(parsedCmdOpts, varMap);
-  po::notify(varMap);
+  po::store (parsedCmdOpts, varMap);
+  po::notify (varMap);
 
   if (varMap.count("help")) {
     std::cout << desc << "\n";
     exit (0);
-  }
-  
-
-
-  if  (true) {
-    printf ("Epsilon  = %e\n", Epsilon);
-    printf ("MaxValue = %e\n", MaxValue);
   }
 
   if (inputFileName.empty()) {
@@ -159,10 +182,7 @@ static void processTrig (V3 trig[3]) {
 static std::tuple<float, V3, V3> getMinDistance ()
 {
   float minD2 = 1e22;
-
-  float eps2 = Epsilon * Epsilon;
-
-  V3 p1min, p2min;
+  V3    p1min, p2min;
 
   for (PointSet::const_iterator p1=pntSet.begin(); p1 != pntSet.end(); p1++) {
     V3 v1 = *p1;
@@ -178,12 +198,24 @@ static std::tuple<float, V3, V3> getMinDistance ()
         p2min = *p2;
         // std::cout << "Smaller dist " << *p1 << "  " << *p2 << "  dist2 " << d2 << std::endl;
       }
-      if (false && (d2 < eps2)) {
-        std::cout << "Small  dist " << *p1 << "  " << *p2 << "  dist " << sqrt(d2) << std::endl;
-      }
     }
   }
   return (std::tuple (sqrt (minD2), p1min, p2min));
+}
+
+
+float triangleArea (V3 trig[3]) {
+  V3
+    s01 = trig[1] - trig[0],
+    s02 = trig[2] - trig[0],
+    cross = s01.cross (s02);
+  float rslt =  0.5 * cross.norm ();
+#if 0
+  printf ("===== Area : %e\n", rslt);
+  for (int k=0; k<3; k++)
+    printf ("    Vertex %d : %f %f %f\n", k, trig[k][0], trig[k][1], trig[k][2]);
+#endif
+  return rslt;
 }
 
 int main (int argc, char *argv[])
@@ -195,16 +227,22 @@ int main (int argc, char *argv[])
   double xMin, yMin, zMin, xMax, yMax, zMax, lsqMin, lsqMax;
   double volume = 0;
   V3 pnt0;
+  StatAcc<float> areaStat;
   try {
     parseOptions (argc, argv);
     StlInFile stlf (inputFileName.c_str());
+    std::cout << "STL file type : " << (stlf.isText ? "text" : "binary") << std::endl;
 
-    //    int numDclTrngl = stlf.numTriangles();
-    //   printf ("Declared %d triangles\n", numDclTrngl);
+    // StatAcc<float> lenStat;
+
+    
     stlf.readTriangle(curTrig, curNormal);
+
+    areaStat.putVal (triangleArea (curTrig));
+
     pnt0 = curTrig[0];
     processTrig (curTrig);
-    checkTrig(curTrig, curNormal);
+    checkTrig (curTrig, curNormal);
     xMin = xMax = curTrig[0].x();
     yMin = yMax = curTrig[0].y();
     zMin = zMax = curTrig[0].z();
@@ -220,6 +258,7 @@ int main (int argc, char *argv[])
     for (trNum=1; ; trNum++) {
       if (! stlf.readTriangle(curTrig, curNormal))
         break;
+      areaStat.putVal (triangleArea (curTrig));
       processTrig (curTrig);
       for (int k=0; k<3; k++) {
 	xMin = std::min<float>(xMin, curTrig[k].x());
@@ -248,6 +287,8 @@ int main (int argc, char *argv[])
       M3 trigPyramid (curTrig[0] - pnt0, curTrig[1] - pnt0, curTrig[2] - pnt0);
       volume += trigPyramid.det ();
     }
+
+    areaStat.finish ();
   }
   catch (std::string s) {
     std::cerr << " EXCEPTION : " << s << std::endl;
@@ -255,21 +296,29 @@ int main (int argc, char *argv[])
     return 3;
   }
   // ........................  Print the stats:
+
+  printf (" Number of triangles : %d\n", trNum);
+
+  areaStat.putVal (triangleArea (curTrig));
+
   printf (" X range:  %12.6f - %12.6f = %12.6f\n", xMax, xMin, xMax - xMin);
   printf (" Y range:  %12.6f - %12.6f = %12.6f\n", yMax, yMin, yMax - yMin);
   printf (" Z range:  %12.6f - %12.6f = %12.6f\n", zMax, zMin, zMax - zMin);
   printf (" Min edge length: %f\n", sqrt(lsqMin));
   printf (" Max edge length: %f\n", sqrt(lsqMax));
 
-  auto [minDist, p1min, p2min] = getMinDistance ();
-  printf (" Minimal distance of %e is between points:\n", minDist);
-  printf ("    (%.20f %.20f %.20f)  and\n", p1min[0], p1min[1], p1min[2]);
-  printf ("    (%.20f %.20f %.20f)\n", p2min[0], p2min[1], p2min[2]);
-  
-
+  if (findMinDist) {
+    auto [minDist, p1min, p2min] = getMinDistance ();
+    printf (" Minimal distance of %e is between points:\n", minDist);
+    printf ("    (%.20f %.20f %.20f)  and\n", p1min[0], p1min[1], p1min[2]);
+    printf ("    (%.20f %.20f %.20f)\n", p2min[0], p2min[1], p2min[2]);
+  }
   volume /= 6;
-
-  printf (" Volume : %lf\n", volume);
-  
+  printf (" Average facet area : %f\n", areaStat.mean);
+  printf (" Median  facet area : %f\n", areaStat.median);
+  printf (" Minimum facet area : %e\n", areaStat.minVal);
+  printf (" Maximum facet area : %f\n", areaStat.maxVal);
+  printf (" Surface area : %f\n", areaStat.sum);
+  printf (" Volume       : %lf\n", volume);
   return 0;
 }
