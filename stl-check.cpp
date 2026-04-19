@@ -18,9 +18,6 @@
 #include <sstream>
 #include <string>
 
-// typedef StlInBinFile<double> STLF;
-
-
 typedef Vec3<float>     V3;
 
 static double Epsilon  = 1e-6;
@@ -93,12 +90,10 @@ struct TrigSet {
       throw (std::string("More than 2 adjacent triangles"));
     numTrigs++;
   }
-  
 };
 
 std::map<OrdEdge, TrigSet, lessEdge>  edgeMap;
 std::map<V3,      int,     CompV3>    vertexMap;
-
 
 typedef Vec3<float>     V3;
 
@@ -170,9 +165,7 @@ int main (int argc, char *argv[])
     for (trNum=0; ; trNum++) {
       if (! stlf.readTriangle(curTrig, curNormal))
         break;
-
       checkTrig (curTrig, curNormal);
-
       OrdEdge
 	edgeKey01(curTrig[0], curTrig[1]),
 	edgeKey12(curTrig[1], curTrig[2]),

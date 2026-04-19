@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <sstream>
 #include <algorithm>
+#include <bit>
 
 
 StlInBaseFile* openStlFile (const char* fileName)
@@ -14,7 +15,7 @@ StlInBaseFile* openStlFile (const char* fileName)
   if (fl_ == NULL)
     throw (std::string("Cannot open STL file ") + 
 	   std::string(fileName) + std::string (" for reading"));
-  if (fread (buf, sizeof(buf), 1, fl_) != 1) 
+  if (fread (buf, sizeof(buf), 1, fl_) != 1)
     throw (std::string("Failed to read the file header "));
   fclose (fl_);
   if (memcmp (buf, textMarker, strlen (textMarker)) == 0)
@@ -27,6 +28,16 @@ StlInBaseFile* openStlFile (const char* fileName)
 void StlInBinFile::init (FILE * f)
 {
   fl_ = f;
+
+  switch (std::endian::native) {
+    case std::endian::big:
+      throw ("Binary STL files can only be read on little-endian computers");
+    case std::endian::little:
+      break;
+    default:
+      std::cerr << "WARNING : Cannot confirm little-endiannes on this computer" << std::endl;
+  }
+
   if (fread (header_, sizeof(header_), 1, fl_) != 1) 
     throw (std::string("Failed to read the file header "));
 

@@ -252,31 +252,26 @@ int main (int argc, char *argv[])
       lsqMax = std::max<double>(lsq01, lsqMax);
       lsqMax = std::max<double>(lsq12, lsqMax);
       lsqMax = std::max<double>(lsq20, lsqMax);
-
-      // Update volume:
+      //.......................................Update volume:
       M3 trigPyramid (curTrig[0] - pnt0, curTrig[1] - pnt0, curTrig[2] - pnt0);
       volume += trigPyramid.det ();
     }
-
-    areaStat.finish ();
   }
   catch (std::string s) {
     std::cerr << " EXCEPTION : " << s << std::endl;
     std::cerr << " Last triangle number : " << trNum << std::endl;
     return 3;
   }
-  // ........................  Print the stats:
-
+  //........................................................  Print the stats:
   for (auto edge : edgeSet) {
     float edgeLen = (edge.second - edge.first).norm ();
     edgeStat.putVal (edgeLen);
   }
   edgeStat.finish ();
+  areaStat.finish ();
 
   printf (" Number of triangles : %d\n", trNum);
-
   areaStat.putVal (triangleArea (curTrig));
-
   printf (" X range:  %12.6f - %12.6f = %12.6f\n", xMax, xMin, xMax - xMin);
   printf (" Y range:  %12.6f - %12.6f = %12.6f\n", yMax, yMin, yMax - yMin);
   printf (" Z range:  %12.6f - %12.6f = %12.6f\n", zMax, zMin, zMax - zMin);
@@ -300,7 +295,7 @@ int main (int argc, char *argv[])
   printf (" Median  facet area : %f\n", areaStat.median);
   printf (" Minimum facet area : %e\n", areaStat.minVal);
   printf (" Maximum facet area : %f\n", areaStat.maxVal);
-  printf (" Surface area : %f\n", areaStat.sum);
+  printf (" Surface area : %f\n",       areaStat.sum);
   volume /= 6;
   printf (" Volume       : %lf\n", volume);
   return 0;
