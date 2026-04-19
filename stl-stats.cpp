@@ -5,10 +5,6 @@
 //    XYZ ranges
 //     moments and gravity center.
 
-static int    verbosity = 1;
-
-#define DO_EDGES 1
-
 #include <boost/program_options.hpp>
 #include <cstdio>
 #include <cstdlib>
@@ -75,24 +71,7 @@ template <typename T> struct StatAcc {
   }
 };
 
-static void checkTrig (V3 trig[3], V3 normal)
-{
-  //............................................ Check the vertices: 
-  for (int v=0; v<3; v++)
-    for (int j=0; j<3; j++) {
-      if (std::isnan(trig[v].p[j])) 
-	throw(std::string("NaN in a triangle"));
-      else if (std::isinf(trig[v].p[j]))
-	throw(std::string("Infinity in a triangle"));
-    }
-  //............................................ Check the normal: 
-  for (int j=0; j<3; j++) {
-    if (std::isnan(normal.p[j]))
-      throw(std::string("NaN in a normal"));
-    else if (std::isinf(normal.p[j]))
-      throw(std::string("Infinity in a normal"));
-  }
-}
+
 
 
 void parseOptions (int argc, char* argv[])
@@ -145,7 +124,6 @@ struct std::less<V3> {
   }
 };
 
-#if DO_EDGES
 template <>
 struct std::less<Edge> {
   bool lessFunc2 (const Edge& e1, const Edge& e2) const {
@@ -164,8 +142,6 @@ struct std::less<Edge> {
     return lessFunc2 (e1, e2);
   }
 };
-#endif
-
 
 static PointSet pntSet;
 static std::set<Edge> edgeSet;
@@ -173,9 +149,7 @@ static std::set<Edge> edgeSet;
 static void processTrig (V3 trig[3]) {
   for (int k=0; k<3; k++) {
     pntSet.insert (trig[k]);
-#if DO_EDGES
     edgeSet.insert (Edge (trig[k], trig[(k+1)%3]));
-#endif
   }
 }
 
@@ -228,6 +202,7 @@ int main (int argc, char *argv[])
   double volume = 0;
   V3 pnt0;
   StatAcc<float> areaStat;
+  StatAcc<float> edgeStat;
   try {
     parseOptions (argc, argv);
     StlInFile stlf (inputFileName.c_str());
@@ -242,7 +217,7 @@ int main (int argc, char *argv[])
 
     pnt0 = curTrig[0];
     processTrig (curTrig);
-    checkTrig (curTrig, curNormal);
+
     xMin = xMax = curTrig[0].x();
     yMin = yMax = curTrig[0].y();
     zMin = zMax = curTrig[0].z();
@@ -297,6 +272,12 @@ int main (int argc, char *argv[])
   }
   // ........................  Print the stats:
 
+  for (auto edge : edgeSet) {
+    float edgeLen = (edge.second - edge.first).norm ();
+    edgeStat.putVal (edgeLen);
+  }
+  edgeStat.finish ();
+
   printf (" Number of triangles : %d\n", trNum);
 
   areaStat.putVal (triangleArea (curTrig));
@@ -313,12 +294,19 @@ int main (int argc, char *argv[])
     printf ("    (%.20f %.20f %.20f)  and\n", p1min[0], p1min[1], p1min[2]);
     printf ("    (%.20f %.20f %.20f)\n", p2min[0], p2min[1], p2min[2]);
   }
-  volume /= 6;
+
+  printf (" Average edge length : %f\n", edgeStat.mean);
+  printf (" Median  edge length : %f\n", edgeStat.median);
+  printf (" Minimum edge length : %e\n", edgeStat.minVal);
+  printf (" Maximum edge length : %f\n", edgeStat.maxVal);
+  printf (" Total   edge length : %f\n", edgeStat.sum);
+
   printf (" Average facet area : %f\n", areaStat.mean);
   printf (" Median  facet area : %f\n", areaStat.median);
   printf (" Minimum facet area : %e\n", areaStat.minVal);
   printf (" Maximum facet area : %f\n", areaStat.maxVal);
   printf (" Surface area : %f\n", areaStat.sum);
+  volume /= 6;
   printf (" Volume       : %lf\n", volume);
   return 0;
 }

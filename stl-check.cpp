@@ -124,6 +124,25 @@ static void usage (char * progName) {
   std::cout << "  <verbosity>  is verbosity level of the output " << std::endl;
 }
 
+static void checkTrig (V3 trig[3], V3 normal)
+{
+  //............................................ Check the vertices: 
+  for (int v=0; v<3; v++)
+    for (int j=0; j<3; j++) {
+      if (std::isnan(trig[v].p[j])) 
+	throw(std::string("NaN in a triangle"));
+      else if (std::isinf(trig[v].p[j]))
+	throw(std::string("Infinity in a triangle"));
+    }
+  //............................................ Check the normal: 
+  for (int j=0; j<3; j++) {
+    if (std::isnan(normal.p[j]))
+      throw(std::string("NaN in a normal"));
+    else if (std::isinf(normal.p[j]))
+      throw(std::string("Infinity in a normal"));
+  }
+}
+
 int main (int argc, char *argv[])
 {
   int trNum = 0;
@@ -151,6 +170,8 @@ int main (int argc, char *argv[])
     for (trNum=0; ; trNum++) {
       if (! stlf.readTriangle(curTrig, curNormal))
         break;
+
+      checkTrig (curTrig, curNormal);
 
       OrdEdge
 	edgeKey01(curTrig[0], curTrig[1]),
