@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <bit>
 
-
 StlInBaseFile* openStlFile (const char* fileName)
 {
   char buf[8];

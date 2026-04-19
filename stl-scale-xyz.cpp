@@ -83,16 +83,17 @@ static void readParams (int argc, char* argv[], Param& prm)
 
 static void scaleSTL  (const Param& prm)
 {
-  StlInBinFile  inf (prm.inputName);
-  int numDclTrngl = inf.numTriangles();
+  StlInFile  inf (prm.inputName);
+  // int numDclTrngl = inf.numTriangles();
   char buf[80];
   sprintf (buf, "Scaled by %.3f %.3f %.3f", prm.scales[0],prm.scales[1],prm.scales[2]);
   StlOutBinFile onf (prm.outputName, buf);
 
   M3 scMat(prm.scales);
-  for (int trNum=0; trNum<numDclTrngl; trNum++) {
+  for (int trNum=0; ; trNum++) {
     V3 inTrig[3], outTrig[3], curNormal;
-    inf.readTriangle(inTrig, curNormal);
+    if (! inf.readTriangle(inTrig, curNormal))
+      break;
     for (int j=0; j<3; j++)
       outTrig[j] = scMat * inTrig[j];
     onf.writeTriangle(outTrig, curNormal);
