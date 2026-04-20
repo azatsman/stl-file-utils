@@ -66,6 +66,18 @@ template <typename Real> class Vec3 {
     return r;
   };
 
+  bool operator < (Vec3 x) {
+    Real Epsilon = 0;
+    for (int k=0; k<3; k++) {
+      if      (p[k] + Epsilon < x.p[k])
+        return true;
+      else if (p[k] - Epsilon > x.p[k])
+        return false;
+    }
+    return false;
+  }
+  
+
   Vec3 compProd (Vec3 x) const {
     Vec3 rslt (p[0] * x.p[0],
                p[1] * x.p[1],

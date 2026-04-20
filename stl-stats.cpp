@@ -13,14 +13,6 @@ static bool findMinDist = false;
 
 namespace po = boost::program_options;
 
-template <typename T>
-static  std::string type2string (T x)
-{
-  std::ostringstream oss;
-  oss << x;
-  return oss.str();
-}
-
 template <typename T> struct StatAcc {
 
   StatAcc() : count(0), sum(0) {};
@@ -55,9 +47,6 @@ template <typename T> struct StatAcc {
   }
 };
 
-
-
-
 void parseOptions (int argc, char* argv[])
 {
   po::options_description desc("Options");
@@ -88,8 +77,6 @@ void parseOptions (int argc, char* argv[])
 
 typedef std::set  <V3> PointSet;
 typedef std::pair <V3,V3> Edge;
-
-// static Edge reverse (const Edge& e) {return Edge (e.second, e.first);}
 
 bool lessFunc (const V3& v1, const V3& v2)  {
   for (int k=0; k<3; k++) {

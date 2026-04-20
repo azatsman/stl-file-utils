@@ -35,6 +35,7 @@ static bool lessV3(V3 u, V3 v)
 struct CompV3 {
   bool operator() (V3 u, V3 v) const {
     return lessV3 (u, v);
+    // return (u < v);
   }
 };
 
