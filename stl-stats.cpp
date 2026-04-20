@@ -1,10 +1,3 @@
-// TODO
-//    check normals: orthogonality to the triangles and correct orientations.
-//
-//    total area
-//    XYZ ranges
-//     moments and gravity center.
-
 #include <boost/program_options.hpp>
 #include <cstdio>
 #include <cstdlib>
@@ -13,17 +6,12 @@
 #include <sstream>
 #include <iostream>
 #include <set>
+#include "stlfile.hpp"
 
 static std::string inputFileName;
 static bool findMinDist = false;
 
 namespace po = boost::program_options;
-
-#include "stlfile.hpp"
-
-typedef Vec3<float>     V3;
-typedef Mat3<float>     M3;
-
 
 template <typename T>
 static  std::string type2string (T x)

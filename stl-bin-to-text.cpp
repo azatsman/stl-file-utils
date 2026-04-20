@@ -3,8 +3,6 @@
 
 #define VERTEX_FORMAT "        vertex %9.3f %9.3f %9.3f\n"
 
-typedef Vec3<float>     V3;
-
 int main (int argc, char *argv[])
 {
   if (argc != 2) {

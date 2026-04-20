@@ -10,11 +10,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-
 #include "stlfile.hpp"
-
-
-typedef Vec3<float> V3;
 
 int main (int argc, char *argv[])
 {

@@ -2,9 +2,6 @@
 #include <iostream>
 #include "stlfile.hpp"
 
-typedef Vec3<float>            V3;
-typedef Mat3<float>            M3;
-
 static std::string inputFileName;
 static std::string outputFileName;
 

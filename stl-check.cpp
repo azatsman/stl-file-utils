@@ -18,8 +18,6 @@
 #include <sstream>
 #include <string>
 
-typedef Vec3<float>     V3;
-
 static double Epsilon  = 1e-6;
 static double MaxRange = 1e9;
 
@@ -39,8 +37,9 @@ struct CompV3 {
     return lessV3 (u, v);
   }
 };
-  
-//.................................. Ordered edge:
+
+//............................................ Ordered edge:
+
 struct OrdEdge {
   V3 pnt0;
   V3 pnt1;
@@ -94,8 +93,6 @@ struct TrigSet {
 
 std::map<OrdEdge, TrigSet, lessEdge>  edgeMap;
 std::map<V3,      int,     CompV3>    vertexMap;
-
-typedef Vec3<float>     V3;
 
 template <typename T>
 static  std::string type2string (T x)
@@ -161,7 +158,6 @@ int main (int argc, char *argv[])
 
     // int numDclTrngl = stlf.numTriangles();
 
-
     for (trNum=0; ; trNum++) {
       if (! stlf.readTriangle(curTrig, curNormal))
         break;
@@ -181,33 +177,32 @@ int main (int argc, char *argv[])
       vertexMap[curTrig[1]]++;
       vertexMap[curTrig[2]]++;
     }
-    for (std::map<OrdEdge, TrigSet>::const_iterator p = edgeMap.begin();
-	 p != edgeMap.end();
-	 p++) {
-      if (p->second.numTrigs != 2) {
+
+    for (auto e : edgeMap) {
+      if (e.second.numTrigs != 2) {
 	printf("Edge ((%lf,%lf,%lf),(%lf,%lf,%lf)) has %d adjacent triangles\n",
-		p->first.pnt0.x(), p->first.pnt0.y(), p->first.pnt0.z(),
-		p->first.pnt1.x(), p->first.pnt1.y(), p->first.pnt1.z(), p->second.numTrigs);
+               e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
+               e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(), e.second.numTrigs);
       }
-      int signSum = p->second.sign[0] + p->second.sign[1];
+      int signSum = e.second.sign[0] + e.second.sign[1];
       if (signSum) {
 	printf("Edge ((%lf,%lf,%lf),(%lf,%lf,%lf)) has non-0 multiplicity (%d)\n",
-		p->first.pnt0.x(), p->first.pnt0.y(), p->first.pnt0.z(),
-		p->first.pnt1.x(), p->first.pnt1.y(), p->first.pnt1.z(), signSum);
+               e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
+               e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(), signSum);
       }
       if (verbosity > 0) {
 	printf("\n");
 	printf("%12.6f %12.6f %12.6f   %12.6f %12.6f %12.6f edge\n",
-	       p->first.pnt0.x(), p->first.pnt0.y(), p->first.pnt0.z(),
-	       p->first.pnt1.x(), p->first.pnt1.y(), p->first.pnt1.z());
+	       e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
+	       e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z());
 	printf("%12.6f %12.6f %12.6f   %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f trig0\n",
-	       p->second.trigs[0][0].x(),p->second.trigs[0][0].y(),p->second.trigs[0][0].z(),
-	       p->second.trigs[0][1].x(),p->second.trigs[0][1].y(),p->second.trigs[0][1].z(),
-	       p->second.trigs[0][2].x(),p->second.trigs[0][2].y(),p->second.trigs[0][2].z());
+	       e.second.trigs[0][0].x(),e.second.trigs[0][0].y(),e.second.trigs[0][0].z(),
+	       e.second.trigs[0][1].x(),e.second.trigs[0][1].y(),e.second.trigs[0][1].z(),
+	       e.second.trigs[0][2].x(),e.second.trigs[0][2].y(),e.second.trigs[0][2].z());
 	printf("%12.6f %12.6f %12.6f   %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f trig1\n",
-	       p->second.trigs[1][0].x(),p->second.trigs[1][0].y(),p->second.trigs[1][0].z(),
-	       p->second.trigs[1][1].x(),p->second.trigs[1][1].y(),p->second.trigs[1][1].z(),
-	       p->second.trigs[1][2].x(),p->second.trigs[1][2].y(),p->second.trigs[1][2].z());
+	       e.second.trigs[1][0].x(),e.second.trigs[1][0].y(),e.second.trigs[1][0].z(),
+	       e.second.trigs[1][1].x(),e.second.trigs[1][1].y(),e.second.trigs[1][1].z(),
+	       e.second.trigs[1][2].x(),e.second.trigs[1][2].y(),e.second.trigs[1][2].z());
       }
     }
   }
