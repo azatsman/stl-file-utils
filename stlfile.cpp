@@ -4,24 +4,15 @@
 #include <algorithm>
 #include <bit>
 
-StlInBaseFile* openStlFile (const char* fileName)
-{
-  char buf[8];
-  StlInBaseFile* rslt = 0;
-  const char* textMarker = "solid";
-  FILE *fl_ = fopen (fileName, "rb");
 
-  if (fl_ == NULL)
-    throw (std::string("Cannot open STL file ") + 
-	   std::string(fileName) + std::string (" for reading"));
-  if (fread (buf, sizeof(buf), 1, fl_) != 1)
-    throw (std::string("Failed to read the file header "));
-  fclose (fl_);
-  if (memcmp (buf, textMarker, strlen (textMarker)) == 0)
-    rslt = new StlInTextFile (fileName);
-  else
-    rslt = new StlInBinFile  (fileName);
-  return rslt;
+void StlInBaseFile::roundTriangle (V3 trig[3]) {
+  if (Epsilon > 0) {
+    for (int j=0; j<3; j++) {
+      V3& vrtx = trig[j];
+      for (int k=0; k<3; k++) 
+        vrtx.p[k] = Epsilon * round (static_cast<double> (vrtx.p[0]) / Epsilon);
+    }
+  }
 }
 
 void StlInBinFile::init (FILE * f)
@@ -47,11 +38,11 @@ void StlInBinFile::init (FILE * f)
   trigNum_ = 0;
 };
 
-StlInBinFile::StlInBinFile (FILE * f) {
+StlInBinFile::StlInBinFile (FILE * f, float epsilon) {
   init (f);
 }
 
-StlInBinFile::StlInBinFile (const char* fileName)
+StlInBinFile::StlInBinFile (const char* fileName, float epsilon)
 {
   fl_ = fopen (fileName, "rb");
   if (fl_ == NULL)
@@ -88,6 +79,9 @@ bool StlInBinFile::readTriangle(V3 trig[3], V3& normal)
   for   (int v=0; v<3; v++) 
     for (int j=0; j<3; j++)
       trig[v].p[j] = *bp++;
+
+  roundTriangle (trig);
+
   trigNum_ ++;
   return true;
 }
@@ -100,27 +94,6 @@ int StlInBinFile::numTriangles() const
 {
   return numTriangles_;
 }
-
-/*
-StlOutBinFile::StlOutBinFile (const char* fileName,
-			      int numTrigs,
-			      const char* header) : fl_(NULL), numTriangles_(numTrigs)
-{
-  fl_ = fopen (fileName, "wb");
-  if (fl_ == NULL)
-    throw (std::string("Cannot open binary STL file ") + 
-	   std::string(fileName) + std::string (" for reading"));
-  header_[sizeof(header_)-2] = '\n';
-  header_[sizeof(header_)-1] = 0;
-  strncpy(header_, header, sizeof(header_) - 2);
-  if (fwrite (header_, sizeof(header_), 1, fl_) != 1) 
-    throw (std::string("Failed to write the file header "));
-  if (fwrite (&numTriangles_, sizeof(numTriangles_), 1, fl_) != 1) 
-    throw (std::string("Failed to write the number of tirangles"));
-}
-*/
-
-
 
 StlOutBinFile::StlOutBinFile (const char* fileName, const char* header)
   : fl_(NULL), numTriangles_(0)
@@ -137,7 +110,6 @@ StlOutBinFile::StlOutBinFile (const char* fileName, const char* header)
   if (fwrite (&numTriangles_, sizeof(numTriangles_), 1, fl_) != 1) 
     throw (std::string("Failed to write the number of tirangles"));
 }
-
 
 StlOutBinFile::~StlOutBinFile ()
 {
@@ -169,7 +141,8 @@ void StlOutBinFile::writeTriangle(const V3 trig[3], const V3& normal)
 
 //============================================================================= Text Version
 
-StlInTextFile::StlInTextFile (const char* fileName) : fl_           (fileName),
+StlInTextFile::StlInTextFile (const char* fileName, float epsilon) :
+  fl_           (fileName),
                                                       numTriangles_ (0),
                                                       fileName_     (fileName),
                                                       lineNumber_   (0)
@@ -274,6 +247,9 @@ bool StlInTextFile::readTriangle (V3 trig[3], V3& normal)
     if (tok1 != std::string ("endfacet"))
       throw (ParseError (line, "Failed to read \"endloop\" in the line", lineNumber_));
   }
+
+  roundTriangle (trig);
+
   trigNum_ ++;
   return true;
 }
@@ -392,7 +368,7 @@ static bool isStlText (FILE * f) {
   return rslt;
 }
 
-StlInFile::StlInFile  (const char * fileName) {
+StlInFile::StlInFile  (const char * fileName, float epsilon) {
   FILE *fl_ = fopen (fileName, "rb");
   if (fl_ == NULL)
     throw (std::string("Cannot open STL file ") + 

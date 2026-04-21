@@ -27,27 +27,33 @@ public:
 
   std::string header;  // Wikipedia calls it "name" for text files and "header" for binaries.
 
-  // Try reading one triangle, return 'true' if successful:
+  //  bool needRounding;
+
+  // When Epsilon > 0 each coordinate of the triangles' vertices is round to the nearest
+  // multiple of Epsilon.
+  // When Epsilon == 0 the coordinates are left undisturbed.
   
+  double Epsilon;
+
+  // Try reading one triangle, return 'true' if successful:
+
   virtual bool readTriangle (V3 trig[3], V3& normal) = 0;
   virtual bool readTriangle (Triangle& trngl) = 0;
 protected:
   int trigNum_;    // the number of triangles read.
+
+  // Conditionally round the triangle's coordinates to the nearest multiple of Epsilon:
+  void roundTriangle (V3 trig[3]);
 };
-
-// Returns a pointer to a text or a binary STL file depending on the
-//  first bytes of the file:
-
-StlInBaseFile* openStlFile (const char* fileName);
 
 //.................................................................. Binary file
 
 class StlInBinFile : public StlInBaseFile {
 public:
-  StlInBinFile (FILE * f);
-  StlInBinFile (const char* fileName);
+  StlInBinFile (FILE * f, float epsilon=0);
+  StlInBinFile (const char* fileName, float epsilon=0);
   virtual ~StlInBinFile ();
-  virtual bool readTriangle (V3 trig[3], V3& normal) ;
+  virtual bool readTriangle (V3 trig[3], V3& normal);
   virtual bool readTriangle (Triangle& trngl);
   int numTriangles() const;
 private:
@@ -55,17 +61,19 @@ private:
   void init (FILE * f);
   char header_[80];
   int numTriangles_;
+  //  virtual void roundTriangle (V3 trig[3]);
 };
 
 class StlInTextFile : public StlInBaseFile {
 public:
-  StlInTextFile (const char* fileName);
+  StlInTextFile (const char* fileName, float epsilon=0);
   virtual ~StlInTextFile ();
   virtual bool readTriangle (V3 trig[3], V3& normal) ;
   virtual bool readTriangle (Triangle& trngl);// {return readTriangle (trngl.vertices, trngl.normal);
   int numTriangles();
 private:
   bool readLine_ (std::string& line);
+  //  virtual void roundTriangle (V3 trig[3]);
   std::ifstream fl_;
   char          header_[80];
   int           numTriangles_;
@@ -118,7 +126,7 @@ class StlInFile : virtual StlInBaseFile {
 public:
 
   bool isText;
-  StlInFile  (const char * fileName);
+  StlInFile  (const char * fileName, float epsilon=0);
   virtual ~StlInFile ();
 
   virtual bool readTriangle (V3 trig[3], V3& normal);
@@ -129,6 +137,7 @@ public:
 
 private:
   StlInBaseFile * actualStlFile;
+  //  virtual void roundTriangle (V3 trig[3]);
 };
 
 #endif /*INCLUDED_stlfile_h_9946361*/
