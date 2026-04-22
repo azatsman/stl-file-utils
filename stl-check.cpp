@@ -117,21 +117,21 @@ static void usage (char * progName) {
   std::cout << "  <verbosity>  is verbosity level of the output " << std::endl;
 }
 
-static void checkTrig (V3 trig[3], V3 normal)
+static void checkTrig (const Triangle trngl)
 {
   //............................................ Check the vertices: 
   for (int v=0; v<3; v++)
     for (int j=0; j<3; j++) {
-      if (std::isnan(trig[v].p[j])) 
+      if (std::isnan(trngl.vertices[v].p[j])) 
 	throw(std::string("NaN in a triangle"));
-      else if (std::isinf(trig[v].p[j]))
+      else if (std::isinf(trngl.vertices[v].p[j]))
 	throw(std::string("Infinity in a triangle"));
     }
   //............................................ Check the normal: 
   for (int j=0; j<3; j++) {
-    if (std::isnan(normal.p[j]))
+    if (std::isnan(trngl.normal.p[j]))
       throw(std::string("NaN in a normal"));
-    else if (std::isinf(normal.p[j]))
+    else if (std::isinf(trngl.normal.p[j]))
       throw(std::string("Infinity in a normal"));
   }
 }
@@ -141,8 +141,11 @@ int main (int argc, char *argv[])
   int trNum = 0;
   int verbosity = 0;
   //  double totalArea = 0;
-  V3 curTrig[3];
-  V3 curNormal;
+  //  V3 curTrig[3];
+  //  V3 curNormal;
+
+  Triangle curTrngl;
+  
   try {
     if (argc < 2) {
       usage (argv[0]);
@@ -160,23 +163,23 @@ int main (int argc, char *argv[])
     // int numDclTrngl = stlf.numTriangles();
 
     for (trNum=0; ; trNum++) {
-      if (! stlf.readTriangle(curTrig, curNormal))
+      if (! stlf.readTriangle(curTrngl))
         break;
-      checkTrig (curTrig, curNormal);
+      checkTrig (curTrngl);
       OrdEdge
-	edgeKey01(curTrig[0], curTrig[1]),
-	edgeKey12(curTrig[1], curTrig[2]),
-	edgeKey20(curTrig[2], curTrig[0]);
+	edgeKey01(curTrngl.vertices[0], curTrngl.vertices[1]),
+	edgeKey12(curTrngl.vertices[1], curTrngl.vertices[2]),
+	edgeKey20(curTrngl.vertices[2], curTrngl.vertices[0]);
       int
 	sgn01 = edgeKey01.reorder(),
 	sgn12 = edgeKey12.reorder(),
 	sgn20 = edgeKey20.reorder();
-      edgeMap [edgeKey01].addTrig(curTrig, sgn01);
-      edgeMap [edgeKey12].addTrig(curTrig, sgn12);
-      edgeMap [edgeKey20].addTrig(curTrig, sgn20);
-      vertexMap[curTrig[0]]++;
-      vertexMap[curTrig[1]]++;
-      vertexMap[curTrig[2]]++;
+      edgeMap [edgeKey01].addTrig(curTrngl.vertices, sgn01);
+      edgeMap [edgeKey12].addTrig(curTrngl.vertices, sgn12);
+      edgeMap [edgeKey20].addTrig(curTrngl.vertices, sgn20);
+      vertexMap[curTrngl.vertices[0]]++;
+      vertexMap[curTrngl.vertices[1]]++;
+      vertexMap[curTrngl.vertices[2]]++;
     }
 
     for (auto e : edgeMap) {

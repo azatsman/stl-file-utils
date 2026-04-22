@@ -24,3 +24,8 @@ Here are the tools in alphabetical order:
 The source code of some of the tools depends on __`boost::program_options`__ include files and the library. On a Debian-based Linux system the corresponding package is called `libboost-program-options-dev`.
 
 Currently only `Makefile` is provided in the hope that it works on most Linux systems.
+
+
+## Notes
+
+Because of limited machine precision some STL files might have the same point represented by slightly different coordinates in different triangles. This might cause false alarms.

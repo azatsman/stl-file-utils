@@ -166,8 +166,9 @@ int main (int argc, char *argv[])
 {
   int trNum = 0;
   //  double totalArea = 0;
-  V3 curTrig[3];
-  V3 curNormal;
+  //  V3 curTrig[3];
+  //  V3 curNormal;
+  Triangle curTrngl;
   double xMin, yMin, zMin, xMax, yMax, zMax, lsqMin, lsqMax;
   double volume = 0;
   V3 pnt0;
@@ -180,42 +181,42 @@ int main (int argc, char *argv[])
 
     std::cout << "STL header or name : " << stlf.getHeader() << std::endl;
 
-    stlf.readTriangle(curTrig, curNormal);
+    stlf.readTriangle(curTrngl);
 
-    areaStat.putVal (triangleArea (curTrig));
+    areaStat.putVal (triangleArea (curTrngl.vertices));
 
-    pnt0 = curTrig[0];
-    processTrig (curTrig);
+    pnt0 = curTrngl.vertices[0];
+    processTrig (curTrngl.vertices);
 
-    xMin = xMax = curTrig[0].x();
-    yMin = yMax = curTrig[0].y();
-    zMin = zMax = curTrig[0].z();
-    lsqMin = lsqMax = (curTrig[0]-curTrig[1]).sumSquares();
+    xMin = xMax = curTrngl.vertices[0].x();
+    yMin = yMax = curTrngl.vertices[0].y();
+    zMin = zMax = curTrngl.vertices[0].z();
+    lsqMin = lsqMax = (curTrngl.vertices[0]-curTrngl.vertices[1]).sumSquares();
     for (int k=0; k<3; k++) {
-      xMin = std::min<float>(xMin, curTrig[k].x());
-      yMin = std::min<float>(yMin, curTrig[k].y());
-      zMin = std::min<float>(zMin, curTrig[k].z());
-      xMax = std::max<float>(xMax, curTrig[k].x());
-      yMax = std::max<float>(yMax, curTrig[k].y());
-      zMax = std::max<float>(zMax, curTrig[k].z());
+      xMin = std::min<float>(xMin, curTrngl.vertices[k].x());
+      yMin = std::min<float>(yMin, curTrngl.vertices[k].y());
+      zMin = std::min<float>(zMin, curTrngl.vertices[k].z());
+      xMax = std::max<float>(xMax, curTrngl.vertices[k].x());
+      yMax = std::max<float>(yMax, curTrngl.vertices[k].y());
+      zMax = std::max<float>(zMax, curTrngl.vertices[k].z());
     }
     for (trNum=1; ; trNum++) {
-      if (! stlf.readTriangle(curTrig, curNormal))
+      if (! stlf.readTriangle(curTrngl.vertices, curTrngl.normal))
         break;
-      areaStat.putVal (triangleArea (curTrig));
-      processTrig (curTrig);
+      areaStat.putVal (triangleArea (curTrngl.vertices));
+      processTrig (curTrngl.vertices);
       for (int k=0; k<3; k++) {
-	xMin = std::min<float>(xMin, curTrig[k].x());
-	yMin = std::min<float>(yMin, curTrig[k].y());
-	zMin = std::min<float>(zMin, curTrig[k].z());
-	xMax = std::max<float>(xMax, curTrig[k].x());
-	yMax = std::max<float>(yMax, curTrig[k].y());
-	zMax = std::max<float>(zMax, curTrig[k].z());
+	xMin = std::min<float>(xMin, curTrngl.vertices[k].x());
+	yMin = std::min<float>(yMin, curTrngl.vertices[k].y());
+	zMin = std::min<float>(zMin, curTrngl.vertices[k].z());
+	xMax = std::max<float>(xMax, curTrngl.vertices[k].x());
+	yMax = std::max<float>(yMax, curTrngl.vertices[k].y());
+	zMax = std::max<float>(zMax, curTrngl.vertices[k].z());
       }
       V3
-	s01 = curTrig[1] - curTrig[0],
-	s12 = curTrig[2] - curTrig[1],
-	s20 = curTrig[0] - curTrig[2];
+	s01 = curTrngl.vertices[1] - curTrngl.vertices[0],
+	s12 = curTrngl.vertices[2] - curTrngl.vertices[1],
+	s20 = curTrngl.vertices[0] - curTrngl.vertices[2];
       double
 	lsq01 = s01.sumSquares(),
 	lsq12 = s12.sumSquares(),
@@ -227,7 +228,9 @@ int main (int argc, char *argv[])
       lsqMax = std::max<double>(lsq12, lsqMax);
       lsqMax = std::max<double>(lsq20, lsqMax);
       //.......................................Update volume:
-      M3 trigPyramid (curTrig[0] - pnt0, curTrig[1] - pnt0, curTrig[2] - pnt0);
+      M3 trigPyramid (curTrngl.vertices[0] - pnt0,
+                      curTrngl.vertices[1] - pnt0,
+                      curTrngl.vertices[2] - pnt0);
       volume += trigPyramid.det ();
     }
   }
@@ -245,7 +248,7 @@ int main (int argc, char *argv[])
   areaStat.finish ();
 
   printf (" Number of triangles : %d\n", trNum);
-  areaStat.putVal (triangleArea (curTrig));
+  areaStat.putVal (triangleArea (curTrngl.vertices));
   printf (" X range:  %12.6f - %12.6f = %12.6f\n", xMax, xMin, xMax - xMin);
   printf (" Y range:  %12.6f - %12.6f = %12.6f\n", yMax, yMin, yMax - yMin);
   printf (" Z range:  %12.6f - %12.6f = %12.6f\n", zMax, zMin, zMax - zMin);
