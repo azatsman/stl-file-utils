@@ -10,12 +10,12 @@ void StlInBaseFile::roundTriangle (V3 trig[3]) {
     for (int j=0; j<3; j++) {
       V3& vrtx = trig[j];
       for (int k=0; k<3; k++) 
-        vrtx.p[k] = Epsilon * round (static_cast<double> (vrtx.p[0]) / Epsilon);
+        vrtx.p[k] = Epsilon * round (static_cast<double> (vrtx.p[k]) / Epsilon);
     }
   }
 }
 
-void StlInBinFile::init (FILE * f)
+void StlInBinFile::init (FILE * f, float epsilon)
 {
   fl_ = f;
 
@@ -28,6 +28,8 @@ void StlInBinFile::init (FILE * f)
       std::cerr << "WARNING : Cannot confirm little-endiannes on this computer" << std::endl;
   }
 
+  Epsilon = epsilon;
+
   if (fread (header_, sizeof(header_), 1, fl_) != 1) 
     throw (std::string("Failed to read the file header "));
 
@@ -39,7 +41,7 @@ void StlInBinFile::init (FILE * f)
 };
 
 StlInBinFile::StlInBinFile (FILE * f, float epsilon) {
-  init (f);
+  init (f, epsilon);
 }
 
 StlInBinFile::StlInBinFile (const char* fileName, float epsilon)
@@ -143,11 +145,12 @@ void StlOutBinFile::writeTriangle(const V3 trig[3], const V3& normal)
 
 StlInTextFile::StlInTextFile (const char* fileName, float epsilon) :
   fl_           (fileName),
-                                                      numTriangles_ (0),
-                                                      fileName_     (fileName),
-                                                      lineNumber_   (0)
+  numTriangles_ (0),
+  fileName_     (fileName),
+  lineNumber_   (0)
 {
   trigNum_ = 0;
+  Epsilon = epsilon;
   std::string line, tok1, tok2;
   if (! readLine_ (line))
     throw (ParseError (line, "Failed to read the first line of text STL file", lineNumber_));
@@ -377,11 +380,11 @@ StlInFile::StlInFile  (const char * fileName, float epsilon) {
     // Cannot reuse 'fl_' because text STL class uses std::ifstream, not 'FILE*':
     fclose (fl_);
     isText = true;
-    actualStlFile = static_cast<StlInBaseFile*> (new StlInTextFile (fileName));
+    actualStlFile = static_cast<StlInBaseFile*> (new StlInTextFile (fileName, epsilon));
   }
   else {
     isText = false;
-    actualStlFile = static_cast<StlInBaseFile*> (new StlInBinFile  (fl_));
+    actualStlFile = static_cast<StlInBaseFile*> (new StlInBinFile  (fl_, epsilon));
   }
 }
 

@@ -134,8 +134,8 @@ static std::tuple<float, V3, V3> getMinDistance ()
     PointSet::const_iterator p1next = p1;
     p1next++;
     for (PointSet::const_iterator p2=p1next; p2 != pntSet.end(); p2++) {
-      V3 v2 = *p2;
-      V3  dv = v1-v2;
+      V3    v2 = *p2;
+      V3    dv = v1-v2;
       float d2 = dv.p[0]*dv.p[0] +dv.p[1]*dv.p[1] +dv.p[2]*dv.p[2];
       if (d2 < minD2) {
         minD2 = d2;
@@ -147,7 +147,6 @@ static std::tuple<float, V3, V3> getMinDistance ()
   }
   return (std::tuple (sqrt (minD2), p1min, p2min));
 }
-
 
 float triangleArea (V3 trig[3]) {
   V3

@@ -58,7 +58,7 @@ public:
   int numTriangles() const;
 private:
   FILE* fl_;
-  void init (FILE * f);
+  void init (FILE * f, float epsilon);
   char header_[80];
   int numTriangles_;
   //  virtual void roundTriangle (V3 trig[3]);

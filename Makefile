@@ -1,7 +1,10 @@
-DBGFLAGS = -g -Wall
 DBGFLAGS = -O3 -Wall
+DBGFLAGS = -g  -Wall
+
 CXX      = g++
+##............................... At this point using C++20 excusively for std::endian feature:
 CXXFLAGS = $(DBGFLAGS) -std=c++20
+
 CPPFLAGS = $(CXXFLAGS)
 LDFLAGS  = -lm  -lboost_program_options
 

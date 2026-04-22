@@ -24,9 +24,9 @@ static double MaxRange = 1e9;
 static bool lessV3(V3 u, V3 v)
 {
   for (int k=0; k<3; k++) {
-    if      (u.p[k] + Epsilon < v.p[k])
+    if      (u.p[k] < v.p[k])
       return true;
-    else if (u.p[k] - Epsilon > v.p[k])
+    else if (u.p[k] > v.p[k])
       return false;
   }
   return false;
@@ -148,14 +148,14 @@ int main (int argc, char *argv[])
       usage (argv[0]);
       return 3;
     }
-    
-    StlInFile stlf (argv[1]);
     if (argc > 2)
       sscanf (argv[2], "%lf", &Epsilon);
     if (argc > 3)
       sscanf (argv[3], "%lf", &MaxRange);
     if (argc > 4)
       sscanf (argv[4], "%d", &verbosity);
+
+    StlInFile stlf (argv[1], Epsilon);
 
     // int numDclTrngl = stlf.numTriangles();
 
@@ -171,9 +171,9 @@ int main (int argc, char *argv[])
 	sgn01 = edgeKey01.reorder(),
 	sgn12 = edgeKey12.reorder(),
 	sgn20 = edgeKey20.reorder();
-      edgeMap[edgeKey01].addTrig(curTrig, sgn01);
-      edgeMap[edgeKey12].addTrig(curTrig, sgn12);
-      edgeMap[edgeKey20].addTrig(curTrig, sgn20);
+      edgeMap [edgeKey01].addTrig(curTrig, sgn01);
+      edgeMap [edgeKey12].addTrig(curTrig, sgn12);
+      edgeMap [edgeKey20].addTrig(curTrig, sgn20);
       vertexMap[curTrig[0]]++;
       vertexMap[curTrig[1]]++;
       vertexMap[curTrig[2]]++;
