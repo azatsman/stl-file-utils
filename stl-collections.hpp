@@ -65,24 +65,32 @@ struct EdgeDesc {
 
 typedef std::map <Edge, EdgeDesc, lessEdge> EdgeMap;
 
-typedef std::vector<Triangle> TriangleArray
 
-typedef std::map <Edge, EdgeDesc, lessEdge);
+typedef std::vector<Triangle> TriangleArray;
 
-static inline addTriangleEdges (EdgeMap& edgeMap,
-                                const Triangle& trngl,
-                                int ix) {
+// Store the triangle in TriangleArray and return its index in there.
+
+static inline int storeTriangle (TriangleArray& tArray,
+                                 const Triangle& trngl)  {
+  int trigNumber = tArray.size();
+  tArray.push_back (trngl);
+  return trigNumber;
+}
+
+static inline void addTriangleEdges (EdgeMap& edgeMap,
+                                     const Triangle& trngl,
+                                     int ix) {
   Edge
     edgeKey01(trngl.vertices[0], trngl.vertices[1]),
     edgeKey12(trngl.vertices[1], trngl.vertices[2]),
     edgeKey20(trngl.vertices[2], trngl.vertices[0]);
   int
-    sgn01 = edgeKey01.reorder(),
-    sgn12 = edgeKey12.reorder(),
-    sgn20 = edgeKey20.reorder();
-  edgeMap [edgeKey01].addTrig(trngl.ix, sgn01);
-  edgeMap [edgeKey12].addTrig(trngl.ix, sgn12);
-  edgeMap [edgeKey20].addTrig(trngl.ix, sgn20);
+    sgn01 = edgeKey01.reorder (),
+    sgn12 = edgeKey12.reorder (),
+    sgn20 = edgeKey20.reorder ();
+  edgeMap [edgeKey01].addTrig (ix, sgn01);
+  edgeMap [edgeKey12].addTrig (ix, sgn12);
+  edgeMap [edgeKey20].addTrig (ix, sgn20);
 }
 
 #endif /*________________________________________included_stl_collections_hpp_72893419*/

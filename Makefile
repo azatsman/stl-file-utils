@@ -14,7 +14,7 @@ stl-bin-to-text.o:  stl-bin-to-text.cpp stlfile.hpp
 stl-bin-to-text:  stl-bin-to-text.o stlfile.o
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-stl-check.o:  stl-check.cpp stlfile.hpp
+stl-check.o:  stl-check.cpp stlfile.hpp stl-collections.hpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 stl-check:  stl-check.o stlfile.o

@@ -17,11 +17,12 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include "stl-collections.hpp"
 
 static double Epsilon  = 1e-6;
 static double MaxRange = 1e9;
 
-#if 1   // to be moved to stl-collections
+#if 0   // to be moved to stl-collections
 
 static bool lessV3(V3 u, V3 v)
 {
@@ -97,7 +98,10 @@ struct TrigSet {
   }
 };
 
-std::map<OrdEdge, TrigSet, lessEdge>  edgeMap;
+// std::map<OrdEdge, TrigSet, lessEdge>  edgeMap;
+
+EdgeMap edgeMap;
+
 std::map<V3,      int,     CompV3>    vertexMap;
 
 template <typename T>
@@ -141,6 +145,7 @@ static void checkTrig (const Triangle trngl)
   }
 }
 
+
 int main (int argc, char *argv[])
 {
   int trNum = 0;
@@ -150,6 +155,8 @@ int main (int argc, char *argv[])
   //  V3 curNormal;
 
   Triangle curTrngl;
+
+  TriangleArray trigArray;
   
   try {
     if (argc < 2) {
@@ -171,51 +178,45 @@ int main (int argc, char *argv[])
       if (! stlf.readTriangle (curTrngl))
         break;
       checkTrig (curTrngl);
-      OrdEdge
-	edgeKey01(curTrngl.vertices[0], curTrngl.vertices[1]),
-	edgeKey12(curTrngl.vertices[1], curTrngl.vertices[2]),
-	edgeKey20(curTrngl.vertices[2], curTrngl.vertices[0]);
-      int
-	sgn01 = edgeKey01.reorder(),
-	sgn12 = edgeKey12.reorder(),
-	sgn20 = edgeKey20.reorder();
-      edgeMap [edgeKey01].addTrig(curTrngl.vertices, sgn01);
-      edgeMap [edgeKey12].addTrig(curTrngl.vertices, sgn12);
-      edgeMap [edgeKey20].addTrig(curTrngl.vertices, sgn20);
+      int trigNum = storeTriangle (trigArray, curTrngl);
+      addTriangleEdges (edgeMap, curTrngl, trigNum);
       vertexMap[curTrngl.vertices[0]]++;
       vertexMap[curTrngl.vertices[1]]++;
       vertexMap[curTrngl.vertices[2]]++;
     }
 
     for (auto e : edgeMap) {
-      if (e.second.numTrigs != 2) {
+      EdgeDesc eDesc = e.second;
+      int numTriangles = eDesc.trindices.size();
+      if (numTriangles != 2) {
 	printf("Edge ((%lf,%lf,%lf),(%lf,%lf,%lf)) has %d adjacent triangles\n",
                e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
-               e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(), e.second.numTrigs);
+               e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(),
+               numTriangles);
       }
-      int signSum = e.second.sign[0] + e.second.sign[1];
-      if (signSum) {
+      if (eDesc.sign != 0) {
 	printf("Edge ((%lf,%lf,%lf),(%lf,%lf,%lf)) has non-0 multiplicity (%d)\n",
                e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
-               e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(), signSum);
+               e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(), eDesc.sign);
       }
       if (verbosity > 0) {
+
 	printf("\n");
 	printf("%12.6f %12.6f %12.6f   %12.6f %12.6f %12.6f edge\n",
 	       e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
 	       e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z());
-	printf("%12.6f %12.6f %12.6f   %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f trig0\n",
-	       e.second.trigs[0][0].x(),e.second.trigs[0][0].y(),e.second.trigs[0][0].z(),
-	       e.second.trigs[0][1].x(),e.second.trigs[0][1].y(),e.second.trigs[0][1].z(),
-	       e.second.trigs[0][2].x(),e.second.trigs[0][2].y(),e.second.trigs[0][2].z());
-	printf("%12.6f %12.6f %12.6f   %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f trig1\n",
-	       e.second.trigs[1][0].x(),e.second.trigs[1][0].y(),e.second.trigs[1][0].z(),
-	       e.second.trigs[1][1].x(),e.second.trigs[1][1].y(),e.second.trigs[1][1].z(),
-	       e.second.trigs[1][2].x(),e.second.trigs[1][2].y(),e.second.trigs[1][2].z());
+        for (auto tix : eDesc.trindices) {
+          const Triangle & trngl = trigArray[tix];
+          printf("%12.6f %12.6f %12.6f   %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f trig0\n",
+                 trngl.vertices[0].x(),trngl.vertices[0].y(),trngl.vertices[0].z(),
+                 trngl.vertices[1].x(),trngl.vertices[1].y(),trngl.vertices[1].z(),
+                 trngl.vertices[2].x(),trngl.vertices[2].y(),trngl.vertices[2].z());
+        }
       }
     }
-  }
+  }  
   catch (std::string s) {
+    int trNum  = trigArray.size();
     std::cerr << " EXCEPTION : " << s << std::endl;
     std::cerr << " Last triangle number : " << trNum << std::endl;
     return 3;
@@ -223,11 +224,12 @@ int main (int argc, char *argv[])
   int
     numVertices = vertexMap.size(),
     numEdges    = edgeMap.size(),
-    euler       = numVertices - numEdges + trNum;
-  std::cout << numVertices << " vertices " << std::endl
-	    << numEdges    << " edges " << std::endl
-	    << trNum       << " faces "  << std::endl
-	    << euler       << " euler number ( = num.Vertices - num.Edges + num.Triangles)" 
+    numTriangles  = trigArray.size(),
+    euler       = numVertices - numEdges + numTriangles;
+  std::cout << numVertices  << " vertices " << std::endl
+	    << numEdges     << " edges "    << std::endl
+	    << numTriangles << " faces "    << std::endl
+	    << euler        << " euler number ( = num.Vertices - num.Edges + num.Triangles)" 
 	    << std::endl;
   return 0;
 }
