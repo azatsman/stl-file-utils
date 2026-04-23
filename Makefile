@@ -5,7 +5,7 @@ CXX      = g++
 ##............................... At this point using C++20 excusively for std::endian feature:
 CXXFLAGS = $(DBGFLAGS) -std=c++20
 
-CPPFLAGS = $(CXXFLAGS)
+# CPPFLAGS = $(CXXFLAGS)
 LDFLAGS  = -lm  -lboost_program_options
 
 stl-bin-to-text.o:  stl-bin-to-text.cpp stlfile.hpp

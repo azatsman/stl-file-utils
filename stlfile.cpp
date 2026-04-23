@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <bit>
 
-
 void StlInBaseFile::roundTriangle (V3 trig[3]) {
   if (Epsilon > 0) {
     for (int j=0; j<3; j++) {
@@ -289,45 +288,6 @@ int StlInTextFile::numTriangles()
       numTriangles_++;
   }
   return numTriangles_;
-}
-
-StlOutTextFile::StlOutTextFile (const char* fileName,
-			      int numTrigs,
-			      const char* header) : fl_(NULL), numTriangles_(numTrigs)
-{
-  fl_ = fopen (fileName, "wt");
-  if (fl_ == NULL)
-    throw (std::string("Cannot open text STL file ") + 
-	   std::string(fileName) + std::string (" for reading"));
-  header_[sizeof(header_)-2] = '\n';
-  header_[sizeof(header_)-1] = 0;
-  strncpy(header_, header, sizeof(header_)-2);
-  if (fwrite (header_, sizeof(header_), 1, fl_) != 1) 
-    throw (std::string("Failed to write the file header "));
-  // if (fwrite (&numTriangles_, sizeof(numTriangles_), 1, fl_) != 1) 
-  //   throw (std::string("Failed to write the number of tirangles"));
-}
-
-StlOutTextFile::~StlOutTextFile ()
-{
-  if (fl_ != NULL)
-    fclose(fl_);
-}
-
-void StlOutTextFile::writeTriangle(const V3 trig[3], const V3& normal)
-{
-  float buf[12];
-  unsigned int  n16;
-  float* bp = buf;
-  for   (int j=0; j<3; j++)
-    *bp++ = normal.p[j];
-  for   (int v=0; v<3; v++) 
-    for (int j=0; j<3; j++)
-      *bp++ = trig[v].p[j];
-  if (fwrite(buf, 4, 12, fl_) != 12)
-    throw(std::string("Failed to write a triangle"));
-  if (fwrite(&n16, 2, 1, fl_) != 1)
-    throw(std::string("Failed to write an \"Attribute Byte Count\""));
 }
 
 //----------------------------------------------- "Generic" StlInFile:

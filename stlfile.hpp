@@ -97,6 +97,9 @@ struct StlOutBinFile {
 
 //---------------------------------------------------------------- Text : 
 
+// Input files only for now. Not much use for output type, except in stl-bin-to-text, but that one
+// simply dumps the text to the standard output.
+
 class ParseError : public std::runtime_error {
 public:
   std::string theLine;
@@ -104,18 +107,6 @@ public:
   ParseError (std::string line, std::string msg, int lineNum) : std::runtime_error (msg),
                                                                 theLine (line),
                                                                 lineNumber (lineNum) {};
-};
-
-struct StlOutTextFile {
-  FILE* fl_;
-  char header_[80];
-  int numTriangles_;
-
-  StlOutTextFile (const char* fileName,
-		 int numTriangles,
-		 const char* header);
-  ~StlOutTextFile ();
-  void writeTriangle(const V3 trig[3], const V3& normal) ;
 };
 
 //------------------------------------------------------------------ "Generic" STL file
