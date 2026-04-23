@@ -21,6 +21,8 @@
 static double Epsilon  = 1e-6;
 static double MaxRange = 1e9;
 
+#if 1   // to be moved to stl-collections
+
 static bool lessV3(V3 u, V3 v)
 {
   for (int k=0; k<3; k++) {
@@ -71,6 +73,9 @@ struct lessEdge {
       return false;
   }
 };
+#endif
+
+
 //...........................  Set of up to two triangles:
 struct TrigSet {
   int numTrigs;

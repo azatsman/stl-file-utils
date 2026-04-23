@@ -10,6 +10,7 @@
 #include <string>
 #include "vec3.hpp"
 #include <fstream>
+#include <vector>
 
 typedef Vec3<float> V3;
 typedef Mat3<float> M3;
@@ -17,6 +18,7 @@ typedef Mat3<float> M3;
 struct Triangle {
   V3 vertices[3];
   V3 normal;
+  static std::vector<Triangle> TriangleArray;
 };
 
 //.................................................................. ABSTRACT base input file:
