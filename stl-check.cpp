@@ -22,84 +22,6 @@
 static double Epsilon  = 1e-6;
 static double MaxRange = 1e9;
 
-#if 0   // to be moved to stl-collections
-
-static bool lessV3(V3 u, V3 v)
-{
-  for (int k=0; k<3; k++) {
-    if      (u.p[k] < v.p[k])
-      return true;
-    else if (u.p[k] > v.p[k])
-      return false;
-  }
-  return false;
-}
-
-struct CompV3 {
-  bool operator() (V3 u, V3 v) const {
-    return lessV3 (u, v);
-    // return (u < v);
-  }
-};
-
-//............................................ Ordered edge:
-
-struct OrdEdge {
-  V3 pnt0;
-  V3 pnt1;
-  OrdEdge (V3 p0, V3 p1) {
-    pnt0 = p0;
-    pnt1 = p1;
-  }
-  int reorder () {
-    if (lessV3(pnt0, pnt1))
-      return 1;
-    else {
-      std::swap(pnt0, pnt1);
-      return -1;
-    }
-  }
-};
-
-struct lessEdge {
-  bool operator() (OrdEdge e1, OrdEdge e2) const
-  {
-    if      (lessV3(e1.pnt0, e2.pnt0))
-      return true;
-    else if (lessV3(e2.pnt0, e1.pnt0))
-      return false;
-    else if (lessV3(e2.pnt1, e1.pnt1))
-      return true;
-    else
-      return false;
-  }
-};
-#endif
-
-
-//...........................  Set of up to two triangles:
-struct TrigSet {
-  int numTrigs;
-  V3 trigs[2][3];
-  int sign[2];
-
-  TrigSet() {numTrigs=0;};
-
-  void addTrig(V3 trg[3], int sign) {
-    if (numTrigs < 2) {
-      trigs[numTrigs][0] = trg[0];
-      trigs[numTrigs][1] = trg[1];
-      trigs[numTrigs][2] = trg[2];
-      this->sign[numTrigs] = sign;
-    }
-    else
-      throw (std::string("More than 2 adjacent triangles"));
-    numTrigs++;
-  }
-};
-
-// std::map<OrdEdge, TrigSet, lessEdge>  edgeMap;
-
 EdgeMap edgeMap;
 
 std::map<V3,      int,     CompV3>    vertexMap;
@@ -145,17 +67,11 @@ static void checkTrig (const Triangle trngl)
   }
 }
 
-
 int main (int argc, char *argv[])
 {
   int trNum = 0;
   int verbosity = 0;
-  //  double totalArea = 0;
-  //  V3 curTrig[3];
-  //  V3 curNormal;
-
   Triangle curTrngl;
-
   TriangleArray trigArray;
   
   try {
@@ -171,8 +87,6 @@ int main (int argc, char *argv[])
       sscanf (argv[4], "%d", &verbosity);
 
     StlInFile stlf (argv[1], Epsilon);
-
-    // int numDclTrngl = stlf.numTriangles();
 
     for (trNum=0; ; trNum++) {
       if (! stlf.readTriangle (curTrngl))
