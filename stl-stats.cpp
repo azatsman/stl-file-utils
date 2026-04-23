@@ -181,7 +181,7 @@ int main (int argc, char *argv[])
 
     std::cout << "STL header or name : " << stlf.getHeader() << std::endl;
 
-    stlf.readTriangle(curTrngl);
+    stlf.readTriangle (curTrngl);
 
     areaStat.putVal (triangleArea (curTrngl.vertices));
 
@@ -201,7 +201,7 @@ int main (int argc, char *argv[])
       zMax = std::max<float>(zMax, curTrngl.vertices[k].z());
     }
     for (trNum=1; ; trNum++) {
-      if (! stlf.readTriangle(curTrngl.vertices, curTrngl.normal))
+      if (! stlf.readTriangle (curTrngl))
         break;
       areaStat.putVal (triangleArea (curTrngl.vertices));
       processTrig (curTrngl.vertices);

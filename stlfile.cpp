@@ -63,6 +63,7 @@ StlInBinFile::~StlInBinFile ()
     fclose(fl_);
 };
 
+#if 0
 bool StlInBinFile::readTriangle(V3 trig[3], V3& normal)
 {
   float buf[12];
@@ -87,9 +88,32 @@ bool StlInBinFile::readTriangle(V3 trig[3], V3& normal)
   trigNum_ ++;
   return true;
 }
+#endif
 
-bool StlInBinFile::readTriangle (Triangle & trngl) {
-  return readTriangle (trngl.vertices, trngl.normal);
+
+bool StlInBinFile::readTriangle (Triangle & trngl)
+{
+  float buf[12];
+  unsigned int  n16;
+
+  if (trigNum_ >= numTriangles_)
+    return false;
+
+  if (fread(buf, 4, 12, fl_) != 12)
+    return false;
+  if (fread(&n16, 2, 1, fl_) != 1)
+    throw(std::string("Failed to read the \"Attribute Byte Count\" field"));
+  float* bp = buf;
+  for   (int j=0; j<3; j++)
+    trngl.normal.p[j] = *bp++;
+  for   (int v=0; v<3; v++) 
+    for (int j=0; j<3; j++)
+      trngl.vertices[v].p[j] = *bp++;
+
+  roundTriangle (trngl.vertices);
+
+  trigNum_ ++;
+  return true;
 }
 
 int StlInBinFile::numTriangles() const
@@ -123,17 +147,17 @@ StlOutBinFile::~StlOutBinFile ()
   }
 }
 
-void StlOutBinFile::writeTriangle(const V3 trig[3], const V3& normal)
+void StlOutBinFile::writeTriangle (const Triangle & trngl)
 {
   float buf[12];
   unsigned int  n16 = 0;
   float* bp = buf;
   for   (int j=0; j<3; j++)
-    *bp++ = normal.p[j];
+    *bp++ = trngl.normal.p[j];
 
   for   (int v=0; v<3; v++) 
     for (int j=0; j<3; j++)
-      *bp++ = trig[v].p[j];
+      *bp++ = trngl.vertices[v].p[j];
   if (fwrite(buf, 4, 12, fl_) != 12)
     throw(std::string("Failed to write a triangle"));
   if (fwrite(&n16, 2, 1, fl_) != 1)
@@ -163,9 +187,7 @@ StlInTextFile::StlInTextFile (const char* fileName, float epsilon) :
   lineStream >> header;
 };
 
-StlInTextFile::~StlInTextFile ()
-{
-};
+StlInTextFile::~StlInTextFile () {};
 
 bool StlInTextFile::readLine_ (std::string& line) {
   bool rslt = ! (! std::getline (fl_, line));
@@ -173,7 +195,7 @@ bool StlInTextFile::readLine_ (std::string& line) {
   return rslt;
 }
 
-bool StlInTextFile::readTriangle (V3 trig[3], V3& normal)
+bool StlInTextFile::readTriangle(Triangle & trngl) 
 {
   std::istringstream lineStream;
   std::string line, tok1, tok2;
@@ -198,7 +220,7 @@ bool StlInTextFile::readTriangle (V3 trig[3], V3& normal)
       return std::tolower(c); });
     if (tok1 != std::string ("normal"))
       throw (ParseError (line, "Missing normal in the first line of facet", lineNumber_));
-    lineStream >> normal.p[0] >> normal.p[1] >> normal.p[2];
+    lineStream >> trngl.normal.p[0] >> trngl.normal.p[1] >> trngl.normal.p[2];
   }
   //................................................................... Read the "outer loop":
   if (! readLine_ (line))
@@ -227,7 +249,7 @@ bool StlInTextFile::readTriangle (V3 trig[3], V3& normal)
       
       if (tok1 != std::string ("vertex"))
 	throw (ParseError (line, "Expected \"vertex\" in the line", lineNumber_));
-      lineStream >> trig[k].p[0] >> trig[k].p[1] >> trig[k].p[2];
+      lineStream >> trngl.vertices[k].p[0] >> trngl.vertices[k].p[1] >> trngl.vertices[k].p[2];
     }
   }  
   if (! readLine_ (line))
@@ -251,25 +273,19 @@ bool StlInTextFile::readTriangle (V3 trig[3], V3& normal)
       throw (ParseError (line, "Failed to read \"endloop\" in the line", lineNumber_));
   }
 
-  roundTriangle (trig);
+  roundTriangle (trngl.vertices);
 
   trigNum_ ++;
   return true;
 }
-
-
-bool StlInTextFile::readTriangle(Triangle & trngl) {
-  return readTriangle (trngl.vertices, trngl.normal);
-}
-
 
 int StlInTextFile::numTriangles()
 {
   if (numTriangles_ < 0) {
     StlInTextFile  tmp (this->fileName_.c_str());
     numTriangles_ = 0;
-    V3 trig[3], normal;
-    while (tmp.readTriangle (trig, normal))
+    Triangle ___;
+    while (tmp.readTriangle (___))
       numTriangles_++;
   }
   return numTriangles_;
@@ -391,10 +407,6 @@ StlInFile::StlInFile  (const char * fileName, float epsilon) {
 StlInFile::~StlInFile () {
   if (actualStlFile)
     delete (actualStlFile);
-}
-
-bool StlInFile::readTriangle (V3 trig[3], V3& normal) {
-  return actualStlFile->readTriangle (trig, normal);
 }
 
 bool StlInFile::readTriangle (Triangle& trngl) {

@@ -30,7 +30,6 @@ void usage (char* pnm)
 	 pnm);
 }
 
-
 int main (int argc, char *argv[])
 {
   Param prm;
@@ -91,11 +90,15 @@ static void scaleSTL  (const Param& prm)
 
   M3 scMat(prm.scales);
   for (int trNum=0; ; trNum++) {
-    V3 inTrig[3], outTrig[3], curNormal;
-    if (! inf.readTriangle(inTrig, curNormal))
+    //    V3 inTrig[3], outTrig[3], curNormal;
+
+    Triangle inTrngl, outTrngl;
+    if (! inf.readTriangle (inTrngl))
       break;
+    // FIX : recompute normal!!!
+    outTrngl.normal = inTrngl.normal;
     for (int j=0; j<3; j++)
-      outTrig[j] = scMat * inTrig[j];
-    onf.writeTriangle(outTrig, curNormal);
+      outTrngl.vertices[j] = scMat * inTrngl.vertices[j];
+    onf.writeTriangle(outTrngl);
   }
 }

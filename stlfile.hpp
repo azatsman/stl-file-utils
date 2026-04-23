@@ -37,10 +37,12 @@ public:
 
   // Try reading one triangle, return 'true' if successful:
 
-  virtual bool readTriangle (V3 trig[3], V3& normal) = 0;
   virtual bool readTriangle (Triangle& trngl) = 0;
+
 protected:
+
   int trigNum_;    // the number of triangles read.
+
 
   // Conditionally round the triangle's coordinates to the nearest multiple of Epsilon:
   void roundTriangle (V3 trig[3]);
@@ -53,7 +55,6 @@ public:
   StlInBinFile (FILE * f, float epsilon=0);
   StlInBinFile (const char* fileName, float epsilon=0);
   virtual ~StlInBinFile ();
-  virtual bool readTriangle (V3 trig[3], V3& normal);
   virtual bool readTriangle (Triangle& trngl);
   int numTriangles() const;
 private:
@@ -61,15 +62,13 @@ private:
   void init (FILE * f, float epsilon);
   char header_[80];
   int numTriangles_;
-  //  virtual void roundTriangle (V3 trig[3]);
 };
 
 class StlInTextFile : public StlInBaseFile {
 public:
   StlInTextFile (const char* fileName, float epsilon=0);
   virtual ~StlInTextFile ();
-  virtual bool readTriangle (V3 trig[3], V3& normal) ;
-  virtual bool readTriangle (Triangle& trngl);// {return readTriangle (trngl.vertices, trngl.normal);
+  virtual bool readTriangle (Triangle& trngl);
   int numTriangles();
 private:
   bool readLine_ (std::string& line);
@@ -92,8 +91,8 @@ struct StlOutBinFile {
   // StlOutBinFile (const char* fileName, int numTriangles, const char* header);
 
   ~StlOutBinFile ();
-  void writeTriangle (const V3 trig[3], const V3& normal);
-  void writeTriangle (const Triangle& trngl) {writeTriangle (trngl.vertices, trngl.normal);};
+  // void writeTriangle (const V3 trig[3], const V3& normal);
+  void writeTriangle (const Triangle& trngl);
 };
 
 //---------------------------------------------------------------- Text : 
@@ -129,15 +128,12 @@ public:
   StlInFile  (const char * fileName, float epsilon=0);
   virtual ~StlInFile ();
 
-  virtual bool readTriangle (V3 trig[3], V3& normal);
   virtual bool readTriangle (Triangle& trngl);
 
   std::string getHeader () {return actualStlFile->header;}
-  
 
 private:
   StlInBaseFile * actualStlFile;
-  //  virtual void roundTriangle (V3 trig[3]);
 };
 
 #endif /*INCLUDED_stlfile_h_9946361*/

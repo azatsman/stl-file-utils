@@ -17,20 +17,21 @@ int main (int argc, char *argv[])
   }
   
   int trNum = 0;
-  V3 curTrig[3];
-  V3 curNormal;
+  Triangle curTrngl;
   int numDclTrngl = -1;  // Set insidet 'try'
   try {
     StlInBinFile stlf (argv[1]);
     numDclTrngl = stlf.numTriangles();
     printf ("solid Converted-from-binary-%s\n", argv[1]);
     for (trNum=0; trNum<numDclTrngl; trNum++) {
-      stlf.readTriangle(curTrig, curNormal);
+      stlf.readTriangle (curTrngl);
       printf ("facet normal %9.3f  %9.3f  %9.3f\n",
-	      curNormal.x(), curNormal.y(), curNormal.z());
+	      curTrngl.normal.x(), curTrngl.normal.y(), curTrngl.normal.z());
       printf   ("    outer loop\n");
       for (int v=0; v<3; v++)
-	printf (VERTEX_FORMAT, curTrig[v].x(), curTrig[v].y(), curTrig[v].z());
+	printf (VERTEX_FORMAT, curTrngl.vertices[v].x(),
+                curTrngl.vertices[v].y(),
+                curTrngl.vertices[v].z());
       printf ("    endloop\n");
       printf ("endfacet\n");
     }

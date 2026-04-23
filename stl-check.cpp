@@ -163,7 +163,7 @@ int main (int argc, char *argv[])
     // int numDclTrngl = stlf.numTriangles();
 
     for (trNum=0; ; trNum++) {
-      if (! stlf.readTriangle(curTrngl))
+      if (! stlf.readTriangle (curTrngl))
         break;
       checkTrig (curTrngl);
       OrdEdge
