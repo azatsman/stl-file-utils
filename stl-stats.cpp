@@ -119,11 +119,6 @@ float triangleArea (V3 trig[3]) {
     s02 = trig[2] - trig[0],
     cross = s01.cross (s02);
   float rslt =  0.5 * cross.norm ();
-#if 0
-  printf ("===== Area : %e\n", rslt);
-  for (int k=0; k<3; k++)
-    printf ("    Vertex %d : %f %f %f\n", k, trig[k][0], trig[k][1], trig[k][2]);
-#endif
   return rslt;
 }
 
@@ -139,8 +134,8 @@ int main (int argc, char *argv[])
   try {
     parseOptions (argc, argv);
     StlInFile stlf (inputFileName.c_str());
-    std::cout << "STL file type : " << (stlf.isText ? "text" : "binary") << std::endl;
 
+    std::cout << "STL file type : " << (stlf.isText ? "text" : "binary") << std::endl;
     std::cout << "STL header or name : " << stlf.getHeader() << std::endl;
 
     stlf.readTriangle (curTrngl);
@@ -213,7 +208,20 @@ int main (int argc, char *argv[])
   edgeStat.finish ();
   areaStat.finish ();
 
-  printf (" Number of triangles : %d\n", trNum);
+  //  printf (" Number of triangles : %d\n", trNum);
+
+
+  int
+    numVertices = vertexMap.size(),
+    numEdges    = edgeMap.size(),
+    numTriangles  = trigArray.size(),
+    euler       = numVertices - numEdges + numTriangles;
+  std::cout << numVertices  << " vertices " << std::endl
+	    << numEdges     << " edges "    << std::endl
+	    << numTriangles << " faces (triangles)" << std::endl
+            << "Euler number is " << euler << " ( = num.Vertices - num.Edges + num.Triangles)"
+            << std::endl;
+  
   areaStat.putVal (triangleArea (curTrngl.vertices));
   printf (" X range:  %12.6f - %12.6f = %12.6f\n", xMax, xMin, xMax - xMin);
   printf (" Y range:  %12.6f - %12.6f = %12.6f\n", yMax, yMin, yMax - yMin);
@@ -241,5 +249,6 @@ int main (int argc, char *argv[])
   printf (" Surface area : %f\n",       areaStat.sum);
   volume /= 6;
   printf (" Volume       : %lf\n", volume);
+
   return 0;
 }

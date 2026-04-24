@@ -135,15 +135,5 @@ int main (int argc, char *argv[])
     std::cerr << " Last triangle number : " << trNum << std::endl;
     return 3;
   }
-  int
-    numVertices = vertexMap.size(),
-    numEdges    = edgeMap.size(),
-    numTriangles  = trigArray.size(),
-    euler       = numVertices - numEdges + numTriangles;
-  std::cout << numVertices  << " vertices " << std::endl
-	    << numEdges     << " edges "    << std::endl
-	    << numTriangles << " faces "    << std::endl
-	    << euler        << " euler number ( = num.Vertices - num.Edges + num.Triangles)" 
-	    << std::endl;
   return 0;
 }
