@@ -7,11 +7,14 @@
 #include <iostream>
 #include <set>
 #include "stlfile.hpp"
+#include "stl-collections.hpp"
 
 static std::string inputFileName;
 static bool findMinDist = false;
 
 namespace po = boost::program_options;
+
+// Statistics Accumulator:
 
 template <typename T> struct StatAcc {
 
@@ -75,53 +78,15 @@ void parseOptions (int argc, char* argv[])
   }
 }
 
-typedef std::set  <V3> PointSet;
-typedef std::pair <V3,V3> Edge;
+VertexMap     vertexMap;
+EdgeMap       edgeMap;
+TriangleArray trigArray;
 
-bool lessFunc (const V3& v1, const V3& v2)  {
-  for (int k=0; k<3; k++) {
-    if (v1.p[k] < v2.p[k])
-      return true;
-    if (v1.p[k] > v2.p[k])
-      return false;
-  }
-  return false;
-}
-
-template <>
-struct std::less<V3> {
-  bool operator () (const V3& v1, const V3& v2) const {
-    return lessFunc (v1, v2);
-  }
-};
-
-template <>
-struct std::less<Edge> {
-  bool lessFunc2 (const Edge& e1, const Edge& e2) const {
-    //    if (e1.first < e2.first)
-    //    if (std::less<V3>::lessFunc (e1.first, e2.first))
-    //      return true
-    if (lessFunc (e1.first,  e2.first))
-      return true;
-    if (lessFunc (e2.first,  e1.first))
-      return false;
-    if (lessFunc (e1.second, e2.second))
-      return true;
-    return false;
-  }
-  bool operator () (const Edge& e1, const Edge& e2) const {
-    return lessFunc2 (e1, e2);
-  }
-};
-
-static PointSet pntSet;
-static std::set<Edge> edgeSet;
-
-static void processTrig (V3 trig[3]) {
-  for (int k=0; k<3; k++) {
-    pntSet.insert (trig[k]);
-    edgeSet.insert (Edge (trig[k], trig[(k+1)%3]));
-  }
+static void processTrig (const Triangle & trngl) {
+  for (V3 v : trngl.vertices) 
+    vertexMap[v]++;
+  int trigNum = storeTriangle (trigArray, trngl);
+  addTriangleEdges (edgeMap, trngl, trigNum);
 }
 
 static std::tuple<float, V3, V3> getMinDistance ()
@@ -129,18 +94,18 @@ static std::tuple<float, V3, V3> getMinDistance ()
   float minD2 = 1e22;
   V3    p1min, p2min;
 
-  for (PointSet::const_iterator p1=pntSet.begin(); p1 != pntSet.end(); p1++) {
-    V3 v1 = *p1;
-    PointSet::const_iterator p1next = p1;
+  for (auto p1 = vertexMap.begin(); p1 != vertexMap.end(); p1++) {
+    V3 v1 = p1->first;
+    auto p1next = p1;
     p1next++;
-    for (PointSet::const_iterator p2=p1next; p2 != pntSet.end(); p2++) {
-      V3    v2 = *p2;
+    for (auto p2 =p1next; p2 != vertexMap.end(); p2++) {
+      V3    v2 = p2->first;
       V3    dv = v1-v2;
       float d2 = dv.p[0]*dv.p[0] +dv.p[1]*dv.p[1] +dv.p[2]*dv.p[2];
       if (d2 < minD2) {
         minD2 = d2;
-        p1min = *p1;
-        p2min = *p2;
+        p1min = p1->first;
+        p2min = p2->first;
         // std::cout << "Smaller dist " << *p1 << "  " << *p2 << "  dist2 " << d2 << std::endl;
       }
     }
@@ -165,9 +130,6 @@ float triangleArea (V3 trig[3]) {
 int main (int argc, char *argv[])
 {
   int trNum = 0;
-  //  double totalArea = 0;
-  //  V3 curTrig[3];
-  //  V3 curNormal;
   Triangle curTrngl;
   double xMin, yMin, zMin, xMax, yMax, zMax, lsqMin, lsqMax;
   double volume = 0;
@@ -186,7 +148,7 @@ int main (int argc, char *argv[])
     areaStat.putVal (triangleArea (curTrngl.vertices));
 
     pnt0 = curTrngl.vertices[0];
-    processTrig (curTrngl.vertices);
+    processTrig (curTrngl);
 
     xMin = xMax = curTrngl.vertices[0].x();
     yMin = yMax = curTrngl.vertices[0].y();
@@ -204,7 +166,7 @@ int main (int argc, char *argv[])
       if (! stlf.readTriangle (curTrngl))
         break;
       areaStat.putVal (triangleArea (curTrngl.vertices));
-      processTrig (curTrngl.vertices);
+      processTrig (curTrngl);
       for (int k=0; k<3; k++) {
 	xMin = std::min<float>(xMin, curTrngl.vertices[k].x());
 	yMin = std::min<float>(yMin, curTrngl.vertices[k].y());
@@ -240,9 +202,13 @@ int main (int argc, char *argv[])
     return 3;
   }
   //........................................................  Print the stats:
-  for (auto edge : edgeSet) {
-    float edgeLen = (edge.second - edge.first).norm ();
-    edgeStat.putVal (edgeLen);
+  for (auto edgePair : edgeMap) {
+    auto edge     = edgePair.first;
+    auto edgeDesc = edgePair.second;
+    float edgeLen = (edge.pnt1 - edge.pnt0).norm ();
+    int edgeMultiplicity = edgeDesc.trindices.size();
+    for (int k=0; k<edgeMultiplicity; k++)
+      edgeStat.putVal (edgeLen);
   }
   edgeStat.finish ();
   areaStat.finish ();

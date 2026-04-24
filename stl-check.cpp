@@ -24,7 +24,7 @@ static double MaxRange = 1e9;
 
 EdgeMap edgeMap;
 
-std::map<V3,      int,     CompV3>    vertexMap;
+VertexMap vertexMap;
 
 template <typename T>
 static  std::string type2string (T x)

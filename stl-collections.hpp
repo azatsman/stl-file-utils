@@ -13,7 +13,7 @@ static bool lessV3(V3 u, V3 v)
   return false;
 }
 
-struct CompV3 {
+struct CompVertex {
   bool operator() (V3 u, V3 v) const {return lessV3 (u, v);}
 };
 
@@ -36,7 +36,7 @@ struct Edge {
   }
 };
 
-struct lessEdge {
+struct CompEdge {
   bool operator() (Edge e1, Edge e2) const {
     if      (lessV3(e1.pnt0, e2.pnt0))
       return true;
@@ -63,8 +63,9 @@ struct EdgeDesc {
   }
 };
 
-typedef std::map <Edge, EdgeDesc, lessEdge> EdgeMap;
+typedef std::map<V3,      int,     CompVertex>    VertexMap;
 
+typedef std::map <Edge, EdgeDesc, CompEdge> EdgeMap;
 
 typedef std::vector<Triangle> TriangleArray;
 
