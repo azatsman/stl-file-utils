@@ -9,16 +9,42 @@
 #include "stlfile.hpp"
 #include "stl-collections.hpp"
 
+namespace po = boost::program_options;
+
 static std::string inputFileName;
 static bool findMinDist = false;
 
-namespace po = boost::program_options;
+void parseOptions (int argc, char* argv[])
+{
+  po::options_description desc("Options");
 
-// Statistics Accumulator:
+  desc.add_options()
+    ("help,h",      "print usage message")
+    ("input,i",      po::value<std::string> (&inputFileName), "Input STL file")
+    ("min-distance,d",      po::bool_switch (&findMinDist),
+     "Report minimal distance between vertices"
+     "   (quadratic complexity)"
+     );
+  
+  po::basic_parsed_options<char>  parsedCmdOpts = po::parse_command_line (argc, argv, desc);
+  po::variables_map varMap;
+  po::store (parsedCmdOpts, varMap);
+  po::notify (varMap);
 
-template <typename T> struct StatAcc {
+  if (varMap.count("help")) {
+    std::cout << desc << "\n";
+    exit (0);
+  }
 
-  StatAcc() : count(0), sum(0) {};
+  if (inputFileName.empty()) {
+    fprintf (stderr, "%s : Must specify a valid input file name\n", argv[0]);
+    exit (2);
+  }
+}
+
+template <typename T> struct StatsAccumulator {
+
+  StatsAccumulator() : count(0), sum(0) {};
 
   std::vector<T> valArr;
   int count;
@@ -50,33 +76,6 @@ template <typename T> struct StatAcc {
   }
 };
 
-void parseOptions (int argc, char* argv[])
-{
-  po::options_description desc("Options");
-
-  desc.add_options()
-    ("help,h",      "print usage message")
-    ("input,i",      po::value<std::string> (&inputFileName), "Input STL file")
-    ("min-distance,d",      po::bool_switch (&findMinDist),
-     "Report minimal distance between vertices"
-     "   (quadratic complexity)"
-     );
-  
-  po::basic_parsed_options<char>  parsedCmdOpts = po::parse_command_line (argc, argv, desc);
-  po::variables_map varMap;
-  po::store (parsedCmdOpts, varMap);
-  po::notify (varMap);
-
-  if (varMap.count("help")) {
-    std::cout << desc << "\n";
-    exit (0);
-  }
-
-  if (inputFileName.empty()) {
-    fprintf (stderr, "%s : Must specify a valid input file name\n", argv[0]);
-    exit (2);
-  }
-}
 
 VertexMap     vertexMap;
 EdgeMap       edgeMap;
@@ -129,8 +128,8 @@ int main (int argc, char *argv[])
   double xMin, yMin, zMin, xMax, yMax, zMax, lsqMin, lsqMax;
   double volume = 0;
   V3 pnt0;
-  StatAcc<float> areaStat;
-  StatAcc<float> edgeStat;
+  StatsAccumulator<float> areaStat;
+  StatsAccumulator<float> edgeStat;
   try {
     parseOptions (argc, argv);
     StlInFile stlf (inputFileName.c_str());
@@ -208,14 +207,11 @@ int main (int argc, char *argv[])
   edgeStat.finish ();
   areaStat.finish ();
 
-  //  printf (" Number of triangles : %d\n", trNum);
-
-
   int
-    numVertices = vertexMap.size(),
-    numEdges    = edgeMap.size(),
-    numTriangles  = trigArray.size(),
-    euler       = numVertices - numEdges + numTriangles;
+    numVertices  = vertexMap.size(),
+    numEdges     = edgeMap.size(),
+    numTriangles = trigArray.size(),
+    euler        = numVertices - numEdges + numTriangles;
   std::cout << numVertices  << " vertices " << std::endl
 	    << numEdges     << " edges "    << std::endl
 	    << numTriangles << " faces (triangles)" << std::endl

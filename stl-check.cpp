@@ -37,7 +37,7 @@ static  std::string type2string (T x)
 static void usage (char * progName) {
   std::cout << "Usage : "
             << progName
-            << " <input-name> [<epsilon> [<max-range> [<verbosity>]]]"
+            << " <input-name> [<epsilon> [<max-range>]]"
             << std::endl;
 
   std::cout << "       where: " << std::endl;
@@ -45,7 +45,6 @@ static void usage (char * progName) {
   std::cout << "  <input-name> is the name of an STL file " << std::endl;
   std::cout << "  <epsilon>    is smallest distance between vertices before vertices are considered identical " << std::endl;
   std::cout << "  <max-range>  is the largest allowed value of vertex coordinate " << std::endl;
-  std::cout << "  <verbosity>  is verbosity level of the output " << std::endl;
 }
 
 static void checkTrig (const Triangle trngl)
@@ -67,15 +66,25 @@ static void checkTrig (const Triangle trngl)
   }
 }
 
+static bool isRequestForHelp (const char * s) {
+  if (*s == '-') {
+    char ch1 = *(s+1);  // First non-dash character of 's'
+    if (ch1 == '-')
+      ch1 = *(s+2);
+    return ((ch1 == 'h') || (ch1 == 'H'));
+  }
+  else
+    return false;
+}
+
 int main (int argc, char *argv[])
 {
   int trNum = 0;
-  int verbosity = 0;
   Triangle curTrngl;
   TriangleArray trigArray;
   
   try {
-    if (argc < 2) {
+    if ((argc < 2) || isRequestForHelp (argv[1])) {
       usage (argv[0]);
       return 3;
     }
@@ -83,8 +92,6 @@ int main (int argc, char *argv[])
       sscanf (argv[2], "%lf", &Epsilon);
     if (argc > 3)
       sscanf (argv[3], "%lf", &MaxRange);
-    if (argc > 4)
-      sscanf (argv[4], "%d", &verbosity);
 
     StlInFile stlf (argv[1], Epsilon);
 
@@ -112,20 +119,6 @@ int main (int argc, char *argv[])
 	printf("Edge ((%lf,%lf,%lf),(%lf,%lf,%lf)) has non-0 multiplicity (%d)\n",
                e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
                e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(), eDesc.sign);
-      }
-      if (verbosity > 0) {
-
-	printf("\n");
-	printf("%12.6f %12.6f %12.6f   %12.6f %12.6f %12.6f edge\n",
-	       e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
-	       e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z());
-        for (auto tix : eDesc.trindices) {
-          const Triangle & trngl = trigArray[tix];
-          printf("%12.6f %12.6f %12.6f   %12.6f %12.6f %12.6f %12.6f %12.6f %12.6f trig0\n",
-                 trngl.vertices[0].x(),trngl.vertices[0].y(),trngl.vertices[0].z(),
-                 trngl.vertices[1].x(),trngl.vertices[1].y(),trngl.vertices[1].z(),
-                 trngl.vertices[2].x(),trngl.vertices[2].y(),trngl.vertices[2].z());
-        }
       }
     }
   }  
