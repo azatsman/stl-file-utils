@@ -10,6 +10,7 @@
 //   -- Build a histogram of values mod rounding ?
 
 #include "stlfile.hpp"
+#include "stl-collections.hpp"
  
 #include <cmath>
 #include <cstdio>
@@ -17,14 +18,16 @@
 #include <map>
 #include <sstream>
 #include <string>
-#include "stl-collections.hpp"
+#include <boost/program_options.hpp>
 
-static double Epsilon  = 1e-6;
-static double MaxRange = 1e9;
+namespace po = boost::program_options;
 
-EdgeMap edgeMap;
+static double Epsilon  = 0;
 
-VertexMap vertexMap;
+static EdgeMap   edgeMap;
+static VertexMap vertexMap;
+
+static std::string inputFileName;
 
 template <typename T>
 static  std::string type2string (T x)
@@ -34,17 +37,30 @@ static  std::string type2string (T x)
   return oss.str();
 }
 
-static void usage (char * progName) {
-  std::cout << "Usage : "
-            << progName
-            << " <input-name> [<epsilon> [<max-range>]]"
-            << std::endl;
+void parseOptions (int argc, char* argv[])
+{
+  po::options_description desc("Options");
 
-  std::cout << "       where: " << std::endl;
+  desc.add_options()
+    ("help,h",      "print usage message")
+    ("input,i",      po::value<std::string> (&inputFileName), "Input STL file")
+    ("epsilon,e",    po::value<double> (&Epsilon), "Precision of vertex coordinates");
 
-  std::cout << "  <input-name> is the name of an STL file " << std::endl;
-  std::cout << "  <epsilon>    is smallest distance between vertices before vertices are considered identical " << std::endl;
-  std::cout << "  <max-range>  is the largest allowed value of vertex coordinate " << std::endl;
+  
+  po::basic_parsed_options<char>  parsedCmdOpts = po::parse_command_line (argc, argv, desc);
+  po::variables_map varMap;
+  po::store (parsedCmdOpts, varMap);
+  po::notify (varMap);
+
+  if (varMap.count("help")) {
+    std::cout << desc << "\n";
+    exit (0);
+  }
+
+  if (inputFileName.empty()) {
+    fprintf (stderr, "%s : Must specify a valid input file name\n", argv[0]);
+    exit (2);
+  }
 }
 
 static void checkTrig (const Triangle trngl)
@@ -66,6 +82,7 @@ static void checkTrig (const Triangle trngl)
   }
 }
 
+#if 0
 static bool isRequestForHelp (const char * s) {
   if (*s == '-') {
     char ch1 = *(s+1);  // First non-dash character of 's'
@@ -76,25 +93,17 @@ static bool isRequestForHelp (const char * s) {
   else
     return false;
 }
+#endif
 
 int main (int argc, char *argv[])
 {
   int trNum = 0;
   Triangle curTrngl;
   TriangleArray trigArray;
-  
+
   try {
-    if ((argc < 2) || isRequestForHelp (argv[1])) {
-      usage (argv[0]);
-      return 3;
-    }
-    if (argc > 2)
-      sscanf (argv[2], "%lf", &Epsilon);
-    if (argc > 3)
-      sscanf (argv[3], "%lf", &MaxRange);
-
-    StlInFile stlf (argv[1], Epsilon);
-
+    parseOptions (argc, argv);
+    StlInFile stlf (inputFileName.data(), Epsilon);
     for (trNum=0; ; trNum++) {
       if (! stlf.readTriangle (curTrngl))
         break;

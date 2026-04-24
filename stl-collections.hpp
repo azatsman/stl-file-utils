@@ -1,6 +1,9 @@
 #ifndef ________________________________________included_stl_collections_hpp_72893419
 #define ________________________________________included_stl_collections_hpp_72893419
 
+#include "vec3.hpp"
+#include <vector>
+#include <map>
 
 static bool lessV3(V3 u, V3 v)
 {

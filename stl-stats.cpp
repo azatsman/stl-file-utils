@@ -14,6 +14,10 @@ namespace po = boost::program_options;
 static std::string inputFileName;
 static bool findMinDist = false;
 
+static VertexMap     vertexMap;
+static EdgeMap       edgeMap;
+static TriangleArray trigArray;
+
 void parseOptions (int argc, char* argv[])
 {
   po::options_description desc("Options");
@@ -77,9 +81,6 @@ template <typename T> struct StatsAccumulator {
 };
 
 
-VertexMap     vertexMap;
-EdgeMap       edgeMap;
-TriangleArray trigArray;
 
 static void processTrig (const Triangle & trngl) {
   for (V3 v : trngl.vertices) 
