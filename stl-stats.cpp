@@ -75,7 +75,7 @@ template <typename T> struct StatsAccumulator {
     mean = sum / count;
     std::sort (valArr.begin(), valArr.end());
     if (count % 2 == 0)      // Even size array
-      median = 0.5 * (valArr[count/2] + valArr[count/2+1]);
+      median = 0.5 * (valArr[count/2-1] + valArr[count/2]);
     else                     // Odd  size array
       median = valArr[count/2];
   }
