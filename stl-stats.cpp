@@ -29,12 +29,13 @@ void parseOptions (int argc, char* argv[])
      "Report minimal distance between vertices"
      "   (quadratic complexity)"
      );
-  
-  po::basic_parsed_options<char>  parsedCmdOpts = po::parse_command_line (argc, argv, desc);
-  po::variables_map varMap;
-  po::store (parsedCmdOpts, varMap);
-  po::notify (varMap);
 
+  po::positional_options_description p;
+  p.add("input", -1);
+  po::variables_map varMap;
+  po::store(po::command_line_parser(argc, argv).
+            options(desc).positional(p).run(), varMap);
+  po::notify (varMap);
   if (varMap.count("help")) {
     std::cout << desc << "\n";
     exit (0);

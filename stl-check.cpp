@@ -44,13 +44,19 @@ void parseOptions (int argc, char* argv[])
   desc.add_options()
     ("help,h",      "print usage message")
     ("input,i",      po::value<std::string> (&inputFileName), "Input STL file")
-    ("epsilon,e",    po::value<double> (&Epsilon), "Precision of vertex coordinates");
+    ("epsilon,e",    po::value<double> (&Epsilon)->default_value(Epsilon),
+     "Precision of vertex coordinates");
 
   
-  po::basic_parsed_options<char>  parsedCmdOpts = po::parse_command_line (argc, argv, desc);
+  //  po::basic_parsed_options<char>  parsedCmdOpts = po::parse_command_line (argc, argv, desc);
+
+  po::positional_options_description p;
+  p.add("input", -1);
   po::variables_map varMap;
-  po::store (parsedCmdOpts, varMap);
-  po::notify (varMap);
+  po::store(po::command_line_parser(argc, argv).
+            options(desc).positional(p).run(), varMap);
+
+  po::notify(varMap);
 
   if (varMap.count("help")) {
     std::cout << desc << "\n";
