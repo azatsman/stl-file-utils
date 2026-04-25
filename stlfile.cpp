@@ -49,11 +49,7 @@ StlInBinFile::StlInBinFile (const char* fileName, float epsilon)
   if (fl_ == NULL)
     throw (std::string("Cannot open binary STL file ") + 
 	   std::string(fileName) + std::string (" for reading"));
-  if (fread (header_, sizeof(header_), 1, fl_) != 1) 
-    throw (std::string("Failed to read the file header "));
-  if (fread (&numTriangles_, sizeof(numTriangles_), 1, fl_) != 1) 
-    throw (std::string("Failed to read the number of tirangles"));
-  trigNum_ = 0;
+  init (fl_, epsilon);
 };
 
 StlInBinFile::~StlInBinFile ()
@@ -93,7 +89,7 @@ bool StlInBinFile::readTriangle(V3 trig[3], V3& normal)
 bool StlInBinFile::readTriangle (Triangle & trngl)
 {
   float buf[12];
-  unsigned int  n16;
+  unsigned short  n16;
 
   if (trigNum_ >= numTriangles_)
     return false;

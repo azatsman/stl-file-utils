@@ -1,9 +1,12 @@
 #include "stlfile.hpp"
+#include "stl-compute-normals.hpp"
+
 #include <unistd.h>
 #include <stdio.h>
 #include <getopt.h>
 #include <string>
 #include <iostream>
+
 
 struct Param {
   const char* inputName;
@@ -90,15 +93,13 @@ static void scaleSTL  (const Param& prm)
 
   M3 scMat(prm.scales);
   for (int trNum=0; ; trNum++) {
-    //    V3 inTrig[3], outTrig[3], curNormal;
 
     Triangle inTrngl, outTrngl;
     if (! inf.readTriangle (inTrngl))
       break;
-    // FIX : recompute normal!!!
-    outTrngl.normal = inTrngl.normal;
     for (int j=0; j<3; j++)
       outTrngl.vertices[j] = scMat * inTrngl.vertices[j];
+    computeNormal (outTrngl);
     onf.writeTriangle(outTrngl);
   }
 }

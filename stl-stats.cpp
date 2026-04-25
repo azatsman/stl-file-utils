@@ -81,8 +81,6 @@ template <typename T> struct StatsAccumulator {
   }
 };
 
-
-
 static void processTrig (const Triangle & trngl) {
   for (V3 v : trngl.vertices) 
     vertexMap[v]++;
@@ -202,13 +200,10 @@ int main (int argc, char *argv[])
     auto edge     = edgePair.first;
     auto edgeDesc = edgePair.second;
     float edgeLen = (edge.pnt1 - edge.pnt0).norm ();
-    int edgeMultiplicity = edgeDesc.trindices.size();
-    for (int k=0; k<edgeMultiplicity; k++)
-      edgeStat.putVal (edgeLen);
+    edgeStat.putVal (edgeLen);
   }
   edgeStat.finish ();
   areaStat.finish ();
-
   int
     numVertices  = vertexMap.size(),
     numEdges     = edgeMap.size(),
