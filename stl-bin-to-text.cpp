@@ -1,7 +1,8 @@
 #include <iostream>
 #include "stlfile.hpp"
 
-#define VERTEX_FORMAT "        vertex %9.3f %9.3f %9.3f\n"
+#define VERTEX_FORMAT "   vertex    %12.6f %12.6f %12.6f\n"
+#define NORMAL_FORMAT "facet normal %12.6f %12.6f %12.6f\n"
 
 int main (int argc, char *argv[])
 {
@@ -25,12 +26,10 @@ int main (int argc, char *argv[])
     printf ("solid Converted-from-binary-%s\n", argv[1]);
     for (trNum=0; trNum<numDclTrngl; trNum++) {
       stlf.readTriangle (curTrngl);
-      printf ("facet normal %9.3f  %9.3f  %9.3f\n",
-	      curTrngl.normal.x(), curTrngl.normal.y(), curTrngl.normal.z());
+      printf (NORMAL_FORMAT, curTrngl.normal.x(), curTrngl.normal.y(), curTrngl.normal.z());
       printf   ("    outer loop\n");
       for (int v=0; v<3; v++)
-	printf (VERTEX_FORMAT, curTrngl.vertices[v].x(),
-                curTrngl.vertices[v].y(),
+	printf (VERTEX_FORMAT, curTrngl.vertices[v].x(), curTrngl.vertices[v].y(),
                 curTrngl.vertices[v].z());
       printf ("    endloop\n");
       printf ("endfacet\n");

@@ -103,8 +103,8 @@ static bool isRequestForHelp (const char * s) {
 
 int main (int argc, char *argv[])
 {
-  int trNum = 0;
-  Triangle curTrngl;
+  int           trNum = 0;
+  Triangle      curTrngl;
   TriangleArray trigArray;
 
   try {
@@ -125,13 +125,13 @@ int main (int argc, char *argv[])
       EdgeDesc eDesc = e.second;
       int numTriangles = eDesc.trindices.size();
       if (numTriangles != 2) {
-	printf("Edge ((%lf,%lf,%lf),(%lf,%lf,%lf)) has %d adjacent triangles\n",
+	printf("Edge ((%.3f, %.3f, %.3f), (%.3f, %.3f, %.3f)) has %d adjacent triangles\n",
                e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
                e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(),
                numTriangles);
       }
       if (eDesc.sign != 0) {
-	printf("Edge ((%lf,%lf,%lf),(%lf,%lf,%lf)) has non-0 multiplicity (%d)\n",
+	printf("Edge ((%.3f, %.3f, %.3f), (%.3f, %.3f, %.3f)) has non-0 multiplicity (%d)\n",
                e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
                e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(), eDesc.sign);
       }
