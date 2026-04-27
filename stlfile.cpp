@@ -17,7 +17,8 @@ void StlInBaseFile::roundTriangle (V3 trig[3]) {
 void StlInBinFile::init (FILE * f, float epsilon)
 {
   fl_ = f;
-  char header_ [80];
+  char headerBuf [81];
+  headerBuf[80] = 0;  // binary header might not contain 0-terminated string
   switch (std::endian::native) {
     case std::endian::big:
       throw ("Binary STL files can only be read on little-endian computers");
@@ -27,9 +28,9 @@ void StlInBinFile::init (FILE * f, float epsilon)
       std::cerr << "WARNING : Cannot confirm little-endiannes on this computer" << std::endl;
   }
   Epsilon = epsilon;
-  if (fread (header_, sizeof(header_), 1, fl_) != 1) 
+  if (fread (headerBuf, 80, 1, fl_) != 1) 
     throw (std::string("Failed to read the file header "));
-  header = header_;
+  header = headerBuf;
   if (fread (&numTriangles_, sizeof(numTriangles_), 1, fl_) != 1) 
     throw (std::string("Failed to read the number of tirangles"));
   trigNum_ = 0;

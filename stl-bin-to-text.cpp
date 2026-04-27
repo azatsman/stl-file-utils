@@ -27,11 +27,11 @@ int main (int argc, char *argv[])
     for (trNum=0; trNum<numDclTrngl; trNum++) {
       stlf.readTriangle (curTrngl);
       printf (NORMAL_FORMAT, curTrngl.normal.x(), curTrngl.normal.y(), curTrngl.normal.z());
-      printf   ("    outer loop\n");
+      printf   ("   outer loop\n");
       for (int v=0; v<3; v++)
 	printf (VERTEX_FORMAT, curTrngl.vertices[v].x(), curTrngl.vertices[v].y(),
                 curTrngl.vertices[v].z());
-      printf ("    endloop\n");
+      printf ("   endloop\n");
       printf ("endfacet\n");
     }
     printf ("endsolid\n");
