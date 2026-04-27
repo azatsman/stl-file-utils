@@ -88,19 +88,6 @@ static void checkTrig (const Triangle trngl)
   }
 }
 
-#if 0
-static bool isRequestForHelp (const char * s) {
-  if (*s == '-') {
-    char ch1 = *(s+1);  // First non-dash character of 's'
-    if (ch1 == '-')
-      ch1 = *(s+2);
-    return ((ch1 == 'h') || (ch1 == 'H'));
-  }
-  else
-    return false;
-}
-#endif
-
 int main (int argc, char *argv[])
 {
   int           trNum = 0;
@@ -125,22 +112,27 @@ int main (int argc, char *argv[])
       EdgeDesc eDesc = e.second;
       int numTriangles = eDesc.trindices.size();
       if (numTriangles != 2) {
-	printf("Edge ((%.3f, %.3f, %.3f), (%.3f, %.3f, %.3f)) has %d adjacent triangles\n",
+	printf("Edge ((%.3f, %.3f, %.3f), (%.3f, %.3f, %.3f))"
+               "   has %d adjacent triangles",
                e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
                e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(),
                numTriangles);
+        printf ("   (##s:");
+        for (auto trNum : eDesc.trindices)
+          printf (" %d", trNum);
+        printf (")\n");
       }
-      if (eDesc.sign != 0) {
+      else if (eDesc.sign != 0) {
 	printf("Edge ((%.3f, %.3f, %.3f), (%.3f, %.3f, %.3f)) has non-0 multiplicity (%d)\n",
                e.first.pnt0.x(), e.first.pnt0.y(), e.first.pnt0.z(),
                e.first.pnt1.x(), e.first.pnt1.y(), e.first.pnt1.z(), eDesc.sign);
       }
     }
-  }  
+  }
   catch (std::string s) {
     int trNum  = trigArray.size();
     std::cerr << " EXCEPTION : " << s << std::endl;
-    std::cerr << " Last triangle number : " << trNum << std::endl;
+    std::cerr << " Current triangle number : " << trNum << std::endl;
     return 3;
   }
   return 0;

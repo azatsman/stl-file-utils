@@ -21,7 +21,7 @@ void StlInBinFile::init (FILE * f, float epsilon)
   headerBuf[80] = 0;  // binary header might not contain 0-terminated string
   switch (std::endian::native) {
     case std::endian::big:
-      throw ("Binary STL files can only be read on little-endian computers");
+      throw ("This tool can only read binary STL files on little-endian computers");
     case std::endian::little:
       break;
     default:

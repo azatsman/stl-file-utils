@@ -192,7 +192,7 @@ int main (int argc, char *argv[])
   }
   catch (std::string s) {
     std::cerr << " EXCEPTION : " << s << std::endl;
-    std::cerr << " Last triangle number : " << trNum << std::endl;
+    std::cerr << " Current triangle number : " << trNum << std::endl;
     return 3;
   }
   //........................................................  Print the stats:
