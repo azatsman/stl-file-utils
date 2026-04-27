@@ -41,10 +41,11 @@ public:
 
   virtual bool readTriangle (Triangle& trngl) = 0;
 
+  virtual std::string getHeader () {return header;}
+
 protected:
 
   int trigNum_;    // the number of triangles read.
-
 
   // Conditionally round the triangle's coordinates to the nearest multiple of Epsilon:
   void roundTriangle (V3 trig[3]);
@@ -62,7 +63,6 @@ public:
 private:
   FILE* fl_;
   void init (FILE * f, float epsilon);
-  char header_[80];
   int numTriangles_;
 };
 
@@ -74,9 +74,7 @@ public:
   int numTriangles();
 private:
   bool readLine_ (std::string& line);
-  //  virtual void roundTriangle (V3 trig[3]);
   std::ifstream fl_;
-  char          header_[80];
   int           numTriangles_;
   std::string fileName_;
   int lineNumber_;
@@ -84,16 +82,10 @@ private:
 
 struct StlOutBinFile {
   FILE* fl_;
-  char header_[80];
   int numTriangles_;
-
   StlOutBinFile (const char* fileName, const char* header);
   StlOutBinFile (const char* fileName, int numTriangles, const char* header);
-
-  // StlOutBinFile (const char* fileName, int numTriangles, const char* header);
-
   ~StlOutBinFile ();
-  // void writeTriangle (const V3 trig[3], const V3& normal);
   void writeTriangle (const Triangle& trngl);
 };
 
@@ -120,11 +112,10 @@ public:
   bool isText;
   StlInFile  (const char * fileName, float epsilon=0);
   virtual ~StlInFile ();
-
   virtual bool readTriangle (Triangle& trngl);
 
-  std::string getHeader () {return actualStlFile->header;}
-
+  virtual std::string getHeader () {return actualStlFile->getHeader ();}
+  
 private:
   StlInBaseFile * actualStlFile;
 };

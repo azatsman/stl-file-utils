@@ -17,7 +17,7 @@ void StlInBaseFile::roundTriangle (V3 trig[3]) {
 void StlInBinFile::init (FILE * f, float epsilon)
 {
   fl_ = f;
-
+  char header_ [80];
   switch (std::endian::native) {
     case std::endian::big:
       throw ("Binary STL files can only be read on little-endian computers");
@@ -26,14 +26,10 @@ void StlInBinFile::init (FILE * f, float epsilon)
     default:
       std::cerr << "WARNING : Cannot confirm little-endiannes on this computer" << std::endl;
   }
-
   Epsilon = epsilon;
-
   if (fread (header_, sizeof(header_), 1, fl_) != 1) 
     throw (std::string("Failed to read the file header "));
-
   header = header_;
-
   if (fread (&numTriangles_, sizeof(numTriangles_), 1, fl_) != 1) 
     throw (std::string("Failed to read the number of tirangles"));
   trigNum_ = 0;
@@ -57,34 +53,6 @@ StlInBinFile::~StlInBinFile ()
   if (fl_ != NULL)
     fclose(fl_);
 };
-
-#if 0
-bool StlInBinFile::readTriangle(V3 trig[3], V3& normal)
-{
-  float buf[12];
-  unsigned int  n16;
-
-  if (trigNum_ >= numTriangles_)
-    return false;
-
-  if (fread(buf, 4, 12, fl_) != 12)
-    return false;
-  if (fread(&n16, 2, 1, fl_) != 1)
-    throw(std::string("Failed to read the \"Attribute Byte Count\" field"));
-  float* bp = buf;
-  for   (int j=0; j<3; j++)
-    normal.p[j] = *bp++;
-  for   (int v=0; v<3; v++) 
-    for (int j=0; j<3; j++)
-      trig[v].p[j] = *bp++;
-
-  roundTriangle (trig);
-
-  trigNum_ ++;
-  return true;
-}
-#endif
-
 
 bool StlInBinFile::readTriangle (Triangle & trngl)
 {
@@ -123,10 +91,10 @@ StlOutBinFile::StlOutBinFile (const char* fileName, const char* header)
   if (fl_ == NULL)
     throw (std::string("Cannot open binary STL file ") + 
 	   std::string(fileName) + std::string (" for reading"));
-  header_[sizeof(header_)-2] = '\n';
-  header_[sizeof(header_)-1] = 0;
-  strncpy(header_, header, sizeof(header_) - 2);
-  if (fwrite (header_, sizeof(header_), 1, fl_) != 1) 
+  char headerBuff[80];
+  bzero (headerBuff, 80);
+  strncpy (headerBuff, header, 79);
+  if (fwrite (headerBuff, sizeof(headerBuff), 1, fl_) != 1) 
     throw (std::string("Failed to write the file header "));
   if (fwrite (&numTriangles_, sizeof(numTriangles_), 1, fl_) != 1) 
     throw (std::string("Failed to write the number of tirangles"));
@@ -136,7 +104,7 @@ StlOutBinFile::~StlOutBinFile ()
 {
   if (fl_ != NULL) {
     // Write the number of triangles and close the file.
-    fseek  (fl_, sizeof (header_), SEEK_SET);
+    fseek  (fl_, 80, SEEK_SET);
     fwrite (&numTriangles_, sizeof(numTriangles_), 1, fl_);
     fclose (fl_);
   }
@@ -179,7 +147,8 @@ StlInTextFile::StlInTextFile (const char* fileName, float epsilon) :
     return std::tolower(c); });
   if (tok1 != std::string ("solid"))
     throw (ParseError (line, "Bad first line ", lineNumber_));
-  lineStream >> header;
+  //........................................... Read the rest of 'lineStream' to 'header' : 
+  std::getline (lineStream, header);
 };
 
 StlInTextFile::~StlInTextFile () {};
